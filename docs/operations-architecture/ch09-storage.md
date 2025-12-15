@@ -6,31 +6,35 @@ description: "Learn how to store, query, and manage data using relational databa
 
 import { ProcessFlow, StackDiagram, CardGrid, ComparisonTable, TreeDiagram, colors } from '@site/src/components/diagrams';
 
-# Chapter 9. How to Store Data
+# Chapter 9: How to Store Data
 
-In Chapter 8, you learned how to protect your data in transit and at rest. In this chapter, you'll learn about other aspects of data, including storage, querying, and replication. What data am I referring to? Just about all software relies on data: social networking apps need profile, connection, and messaging data; shopping apps need inventory and purchase data; fitness apps need workout and activity data.
+In Chapter 8, you learned how to protect your data in transit and at rest. In this chapter, you'll learn about other aspects of data, including storage, querying, and replication.
 
-Data is one of your most valuable, longest-lived assets. In all likelihood, your data will outlive your shiny web framework, your orchestration tool, your service mesh, your CI/CD pipeline, most employees at your company, and perhaps even the company itself, starting a second life as part of an acquisition. Data is important, and this chapter will show you how to manage it properly.
+**In plain English:** This chapter teaches you where and how to save your data permanently—whether it's user profiles, purchase history, or uploaded photos.
+
+**In technical terms:** You'll learn about different data storage systems, their trade-offs, and how to choose the right tool for each use case: relational databases, key-value stores, file storage, document stores, columnar databases, queues, and streams.
+
+**Why it matters:** Data is one of your most valuable, longest-lived assets. Your data will outlive your web framework, orchestration tool, service mesh, CI/CD pipeline, most employees, and perhaps even the company itself.
 
 ## Table of Contents
 
-1. [Local Storage: Hard Drives](#local-storage-hard-drives)
-2. [Primary Data Store: Relational Databases](#primary-data-store-relational-databases)
-   - [Reading and Writing Data](#reading-and-writing-data)
-   - [ACID Transactions](#acid-transactions)
-   - [Schemas and Constraints](#schemas-and-constraints)
-   - [Example: PostgreSQL, Lambda, and Schema Migrations](#example-postgresql-lambda-and-schema-migrations)
-3. [Caching: Key-Value Stores and CDNs](#caching-key-value-stores-and-cdns)
-4. [File Storage: File Servers and Object Stores](#file-storage-file-servers-and-object-stores)
-5. [Semistructured Data and Search: Document Stores](#semistructured-data-and-search-document-stores)
-6. [Analytics: Columnar Databases](#analytics-columnar-databases)
-7. [Asynchronous Processing: Queues and Streams](#asynchronous-processing-queues-and-streams)
-8. [Scalability and Availability](#scalability-and-availability)
-9. [Backup and Recovery](#backup-and-recovery)
+1. [Local Storage: Hard Drives](#1-local-storage-hard-drives)
+2. [Primary Data Store: Relational Databases](#2-primary-data-store-relational-databases)
+3. [Caching: Key-Value Stores and CDNs](#3-caching-key-value-stores-and-cdns)
+4. [File Storage: File Servers and Object Stores](#4-file-storage-file-servers-and-object-stores)
+5. [Semistructured Data and Search: Document Stores](#5-semistructured-data-and-search-document-stores)
+6. [Analytics: Columnar Databases](#6-analytics-columnar-databases)
+7. [Asynchronous Processing: Queues and Streams](#7-asynchronous-processing-queues-and-streams)
+8. [Scalability and Availability](#8-scalability-and-availability)
+9. [Backup and Recovery](#9-backup-and-recovery)
 
-## Local Storage: Hard Drives
+## 1. Local Storage: Hard Drives
 
-The most basic form of data storage is to write to your local hard drive. The following are the most common types of hard drives used today:
+**In plain English:** Local storage means saving files directly on your computer's hard drive, just like saving a document on your laptop.
+
+**In technical terms:** Local storage refers to persistent storage directly attached to a server, including physical hard drives (HDD/SSD), network-attached storage (EBS, Persistent Disk), shared network drives (NFS, EFS), and container volumes.
+
+**Why it matters:** Understanding storage options is fundamental, but using custom file formats for application data leads to problems with querying, schema evolution, and concurrency.
 
 <CardGrid
   title="Types of Hard Drive Storage"
@@ -91,29 +95,21 @@ The most basic form of data storage is to write to your local hard drive. The fo
   ]}
 />
 
-:::caution Running Data Stores in Containers
-Containers are designed to be easy to distribute, scale, and throw away (hence the default of ephemeral disks), which is great for stateless apps and local development, but not for data stores in production. Not all data stores, data tools, and data vendors support running in containers, and not all orchestration tools support persistent volumes (and those that do often have immature implementations). I prefer to run data stores in production by using managed services, such as Amazon's Relational Database Service. I'd run a data store in a container only if my company was all-in on Kubernetes, which has the most mature persistent volume implementation, and we had significant operational experience with it.
+:::warning Running Data Stores in Containers
+Containers are designed to be easy to distribute, scale, and throw away (hence the default of ephemeral disks), which is great for stateless apps and local development, but not for data stores in production. Not all data stores support running in containers, and not all orchestration tools have mature persistent volume implementations. I prefer to run data stores using managed services such as Amazon RDS. Run data stores in containers only if you're all-in on Kubernetes with significant operational experience.
 :::
-
-Just because you have a local hard drive doesn't mean you should always use it. The typical problems with using custom file formats include:
-
-- **Querying the data**: You have to write custom code to extract insights from your custom file format
-- **Evolving the data format**: Updates to your format can break compatibility with older files
-- **Handling concurrency**: Running on multiple computers requires complex synchronization logic
-
-The solution is to store data in dedicated, mature data stores rather than custom file formats.
 
 :::tip Key Takeaway #1
 Keep your applications stateless. Store all your data in dedicated data stores.
 :::
 
-## Primary Data Store: Relational Databases
+## 2. Primary Data Store: Relational Databases
 
-Relational databases have been the dominant data storage solution for decades—and for good reason. They are flexible; do a great job of maintaining data integrity and consistency; can be configured for remarkable scalability and availability; offer a strong security model; have a huge ecosystem of tools, vendors, and developers; store data efficiently (temporally and spatially); and are the most mature data storage technology available.
+**In plain English:** Relational databases are like super-organized spreadsheets that can handle millions of rows, enforce data rules, and answer complex questions instantly.
 
-The maturity of relational databases is worth focusing on. Consider the initial release dates of some of the most popular relational databases: Oracle (1979), Microsoft SQL Server (1989), MySQL (1995), PostgreSQL (1996), and SQLite (2000). These databases have been in development for 25-50 years, and they are still in active development today.
+**In technical terms:** Relational databases store data in tables with rows and columns, enforce schemas with constraints, support complex queries with SQL, and provide ACID transactions for data integrity.
 
-Data storage is not a technology you can develop quickly. Good software takes at least a decade to develop; with databases, it may be closer to two decades. That's how long it takes to build a piece of software that can be trusted with one of your company's most valuable assets.
+**Why it matters:** Relational databases have been the dominant data storage solution for decades because they're flexible, maintain data integrity, scale well, have strong security, huge ecosystems, and are incredibly mature (25-50 years of development).
 
 :::tip Key Takeaway #2
 Don't roll your own data stores; always use mature, battle-tested, proven, off-the-shelf solutions.
@@ -159,9 +155,11 @@ Don't roll your own data stores; always use mature, battle-tested, proven, off-t
   }}
 />
 
-### Reading and Writing Data
+### 2.1. Reading and Writing Data
 
-A relational database stores data in tables, which represent a collection of related items. Each item is stored in a row, and each row in a table has the same columns. For example, if you were working on a website for a bank, you might have a `customers` table:
+Relational databases store data in tables. Each row represents an item, and each row has the same columns.
+
+Example `customers` table:
 
 | id | name | date_of_birth | balance |
 |----|------|---------------|---------|
@@ -169,7 +167,7 @@ A relational database stores data in tables, which represent a collection of rel
 | 2 | Karen Johnson | 1989-11-18 | 4853 |
 | 3 | Wade Feinstein | 1965-02-29 | 2150 |
 
-Relational databases require you to define a schema before you can write any data. To interact with a relational database, you use Structured Query Language (SQL):
+You interact with databases using SQL:
 
 ```sql
 -- Insert data
@@ -183,15 +181,13 @@ SELECT * FROM customers;
 SELECT * FROM customers WHERE date_of_birth > '1950-12-31';
 ```
 
-:::note SQL Dialects
-In theory, SQL is standardized by ANSI and ISO. In practice, every relational database has its own dialect of SQL that is slightly different. This book focuses on concepts that apply to all relational databases, but examples use the PostgreSQL dialect.
-:::
+### 2.2. ACID Transactions
 
-SQL is ubiquitous in software development, and it's exceptionally flexible. You can use WHERE to filter data; ORDER BY to sort data; GROUP BY to group data; JOIN to query data from multiple tables; COUNT, SUM, AVG, and other aggregate functions to perform calculations; indices to make queries faster; and more.
+**In plain English:** ACID transactions ensure that related operations either all succeed or all fail together, preventing half-finished changes that corrupt your data.
 
-### ACID Transactions
+**In technical terms:** Transactions are sets of coherent operations performed as a unit, meeting four properties: Atomicity (all or nothing), Consistency (valid state always), Isolation (concurrent safety), Durability (persistent storage).
 
-A transaction is a set of coherent operations that should be performed as a unit. In relational databases, transactions must meet four properties:
+**Why it matters:** Without ACID, transferring money between accounts could deduct from one account but fail to add to the other, causing money to vanish.
 
 <ProcessFlow
   title="ACID Transaction Properties"
@@ -224,20 +220,13 @@ A transaction is a set of coherent operations that should be performed as a unit
   ]}
 />
 
-For example, transferring money between accounts:
+### 2.3. Schemas and Constraints
 
-```sql
-START TRANSACTION;
-  UPDATE customers SET balance = balance - 100 WHERE id = 1;
-  UPDATE customers SET balance = balance + 100 WHERE id = 2;
-COMMIT;
-```
+**In plain English:** Schemas are like blueprints that define what kind of data you can store and what rules it must follow.
 
-With ACID, either both accounts are updated, or neither is. No money vanishes into thin air, even with crashes or concurrency.
+**In technical terms:** Schemas define table structure (columns, types) and integrity constraints (domain constraints, primary keys, foreign keys) that the database enforces automatically.
 
-### Schemas and Constraints
-
-Relational databases require you to define a schema for each table:
+**Why it matters:** Schemas catch data errors early (e.g., prevent storing text in a number field, ensure referenced records exist) and document your data structure.
 
 ```sql
 CREATE TABLE customers (
@@ -255,66 +244,23 @@ CREATE TABLE accounts (
 );
 ```
 
-This schema includes integrity constraints:
-
-- **Domain constraints**: Type restrictions (INT, VARCHAR, DATE), NOT NULL requirements
-- **Key constraints**: Primary keys ensure uniqueness
-- **Foreign-key constraints**: Enforce relationships between tables, maintain referential integrity
-
-:::tip Key Takeaway #3
-Use relational databases as your primary data store (the source of truth), as they are secure, reliable, and mature, and they support schemas, integrity constraints, foreign-key constraints, joins, ACID transactions, and a flexible query language (SQL).
-:::
-
-Schema migration tools help manage database schemas as code:
+Schema migration tools manage database schemas as code:
 
 - **Flyway**: Uses standard SQL in .sql files
 - **Liquibase**: Uses XML, YAML, JSON, or SQL
 - **Knex.js**: Uses JavaScript DSL in .js files
 
-These tools track which migrations have been applied and ensure your database schema matches your code.
-
-### Example: PostgreSQL, Lambda, and Schema Migrations
-
-In this section, you'll deploy PostgreSQL using Amazon RDS, manage schemas with Knex.js, and deploy a Lambda function that connects to PostgreSQL over TLS.
-
-:::info Example Code
-You can find all code examples in the [book's GitHub repo](https://github.com/brikis98/devops-book).
+:::tip Key Takeaway #3
+Use relational databases as your primary data store (the source of truth), as they are secure, reliable, and mature, and they support schemas, integrity constraints, foreign-key constraints, joins, ACID transactions, and a flexible query language (SQL).
 :::
 
-The example demonstrates:
+## 3. Caching: Key-Value Stores and CDNs
 
-1. **Deploying RDS PostgreSQL**: Using OpenTofu to provision a managed PostgreSQL database
-2. **Schema migrations**: Using Knex.js to manage database schemas as code
-3. **Secure connections**: Connecting over TLS with proper certificate validation
-4. **Lambda integration**: Deploying a serverless app that queries the database
+**In plain English:** Caching is like keeping frequently used items on your desk instead of fetching them from the filing cabinet every time.
 
-Key configuration points:
+**In technical terms:** Caching stores frequently accessed data in fast memory (RAM) to reduce latency and load on primary data stores. Common use cases include session data, computed results, and API responses.
 
-```javascript
-// knexfile.js - Configure TLS connection
-module.exports = {
-  client: 'postgresql',
-  connection: async () => {
-    const rdsCaCert = await fs.readFile('rds-us-east-2-ca-cert.pem');
-    return {
-      database: process.env.DB_NAME,
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      ssl: {rejectUnauthorized: true, ca: rdsCaCert.toString()}
-    }
-  }
-};
-```
-
-## Caching: Key-Value Stores and CDNs
-
-Caching stores frequently accessed data in memory for fast retrieval. Common use cases:
-
-- **Session data**: User login sessions, shopping carts
-- **Computed results**: Expensive calculations, aggregations
-- **API responses**: Reduce load on backend services
+**Why it matters:** Reduces response time from hundreds of milliseconds to single-digit milliseconds and reduces load on expensive backend systems.
 
 <CardGrid
   title="Caching Solutions"
@@ -362,23 +308,17 @@ Caching stores frequently accessed data in memory for fast retrieval. Common use
   ]}
 />
 
-:::tip Key Takeaway #5
+:::tip Key Takeaway #4
 Use CDNs to cache static content, reducing latency for your users and reducing load on your servers.
 :::
 
-## File Storage: File Servers and Object Stores
+## 4. File Storage: File Servers and Object Stores
 
-### File Servers
+**In plain English:** File storage is where you keep files like images, videos, and documents—either on traditional file servers or modern cloud storage.
 
-Traditional file storage using NFS, CIFS, or SMB. Good for:
+**In technical terms:** File servers (NFS, CIFS) provide filesystem semantics with directories and in-place edits. Object stores (S3, GCS) provide HTTP APIs with flat namespaces and immutable objects.
 
-- Shared file access across servers
-- Legacy application compatibility
-- POSIX filesystem semantics
-
-### Object Stores
-
-Modern cloud-native storage (S3, Google Cloud Storage, Azure Blob Storage):
+**Why it matters:** Object stores offer near-unlimited scalability, 11-nines durability, and pay-per-use pricing, making them ideal for modern cloud applications.
 
 **File Servers vs. Object Stores**
 
@@ -392,13 +332,19 @@ Modern cloud-native storage (S3, Google Cloud Storage, Azure Blob Storage):
 | Cost | Higher (infrastructure) | Pay per GB stored and transferred |
 | Use Case | Shared drives, legacy apps | Static assets, backups, data lakes |
 
-:::tip Key Takeaway #6
+:::tip Key Takeaway #5
 Use object stores for scalable, durable file storage, especially for static assets, backups, media files, and data lakes.
 :::
 
-## Semistructured Data and Search: Document Stores
+## 5. Semistructured Data and Search: Document Stores
 
-Document stores (MongoDB, Couchbase, Amazon DocumentDB) handle semistructured data like JSON:
+**In plain English:** Document stores let you save JSON-like data with flexible structure, perfect for content that doesn't fit neatly into rigid tables.
+
+**In technical terms:** Document stores (MongoDB, Couchbase, Amazon DocumentDB) handle semistructured data (JSON/BSON), support flexible schemas, provide native JSON support, horizontal scalability, and full-text search.
+
+**Why it matters:** Great for evolving data models and search-heavy applications, but trade ACID transactions and mature SQL for flexibility.
+
+Example document:
 
 ```json
 {
@@ -409,26 +355,17 @@ Document stores (MongoDB, Couchbase, Amazon DocumentDB) handle semistructured da
 }
 ```
 
-**Advantages**:
-
-- Flexible schema (good for evolving data models)
-- Native JSON support
-- Horizontal scalability
-- Full-text search capabilities
-
-**Trade-offs**:
-
-- No ACID transactions (typically)
-- Limited join support
-- Query language less mature than SQL
-
-:::tip Key Takeaway #7
+:::tip Key Takeaway #6
 Use document stores for semistructured data, flexible schemas, and full-text search.
 :::
 
-## Analytics: Columnar Databases
+## 6. Analytics: Columnar Databases
 
-Columnar databases (Amazon Redshift, Google BigQuery, Snowflake) optimize for analytics:
+**In plain English:** Columnar databases are optimized for reading and analyzing huge amounts of data, like calculating total sales across millions of transactions.
+
+**In technical terms:** Columnar databases (Redshift, BigQuery, Snowflake) store data by column instead of row, enabling massive compression, parallel processing, and fast aggregations over petabytes of data.
+
+**Why it matters:** Queries that would take hours on row-based databases complete in seconds on columnar databases.
 
 <ProcessFlow
   title="Row-Based vs. Column-Based Storage"
@@ -461,36 +398,31 @@ Columnar databases (Amazon Redshift, Google BigQuery, Snowflake) optimize for an
   ]}
 />
 
-:::tip Key Takeaway #8
+:::tip Key Takeaway #7
 Use columnar databases for analytics, data warehousing, and queries that aggregate large datasets.
 :::
 
-## Asynchronous Processing: Queues and Streams
+## 7. Asynchronous Processing: Queues and Streams
 
-### Message Queues
+### 7.1. Message Queues
 
-Message queues (SQS, RabbitMQ, ActiveMQ) enable asynchronous communication:
+**In plain English:** Message queues are like leaving notes in a shared inbox—one service writes a note, another picks it up and processes it later.
 
-1. Service A sends a message to the queue
-2. The queue stores the message
-3. Service B retrieves and processes the message
-4. Service B acknowledges completion
-5. The queue deletes the message
+**In technical terms:** Message queues (SQS, RabbitMQ, ActiveMQ) enable asynchronous communication by storing messages until consumers process and acknowledge them.
 
-**Benefits**:
+**Why it matters:** Decouples services, smooths traffic spikes, ensures reliable delivery, and enables automatic retries.
 
-- **Decoupling**: Services don't need to know about each other
-- **Load leveling**: Queue absorbs traffic spikes
-- **Reliability**: Messages persist until processed
-- **Retry logic**: Automatic retries on failure
-
-:::tip Key Takeaway #9
+:::tip Key Takeaway #8
 Use message queues to decouple services, smooth out traffic spikes, and ensure reliable message delivery.
 :::
 
-### Event Streams
+### 7.2. Event Streams
 
-Event streams (Kafka, Kinesis, Pub/Sub) provide a durable log of events:
+**In plain English:** Event streams are like a permanent log of everything that happened, which multiple systems can read and replay.
+
+**In technical terms:** Event streams (Kafka, Kinesis, Pub/Sub) provide a durable, ordered log of events that multiple consumers can process independently and replay from any point.
+
+**Why it matters:** Enables real-time processing, event sourcing, and the ability to reprocess historical events for new analytics or bug fixes.
 
 <ProcessFlow
   title="Event Stream Architecture"
@@ -523,66 +455,49 @@ Event streams (Kafka, Kinesis, Pub/Sub) provide a durable log of events:
   ]}
 />
 
-:::tip Key Takeaway #10
+:::tip Key Takeaway #9
 Use event streams for real-time data processing, event sourcing, and when you need multiple consumers or the ability to replay events.
 :::
 
-## Scalability and Availability
+## 8. Scalability and Availability
 
-As your data and traffic grow, you need strategies to scale:
+### 8.1. Replication
 
-### Replication
+**In plain English:** Replication means keeping multiple copies of your data on different servers so your system can handle more requests and survive server failures.
 
-**Read replicas**: Copy data to multiple servers for read scalability
+**In technical terms:** Read replicas copy data to multiple servers (primary handles writes, replicas handle reads) for read scalability with eventual consistency. Multi-master replication allows multiple servers to accept writes for higher availability but requires complex conflict resolution.
 
-- Primary handles writes
-- Replicas handle reads
-- Eventual consistency trade-off
+**Why it matters:** Improves both performance and reliability, though at the cost of eventual consistency.
 
-**Multi-master replication**: Multiple servers accept writes
+### 8.2. Partitioning (Sharding)
 
-- Higher availability
-- Complex conflict resolution
-- Used in distributed databases
+**In plain English:** Partitioning splits your data across multiple servers, like organizing a huge library across multiple buildings.
 
-### Partitioning (Sharding)
+**In technical terms:** Horizontal partitioning splits rows (e.g., users A-M on server 1, N-Z on server 2). Vertical partitioning splits columns (e.g., user profile on server 1, user activity on server 2).
 
-Split data across multiple servers:
+**Why it matters:** Allows scaling beyond single-server capacity limits, but makes queries more complex and rebalancing challenging.
 
-- **Horizontal partitioning**: Split rows (e.g., users A-M on server 1, N-Z on server 2)
-- **Vertical partitioning**: Split columns (e.g., user profile on server 1, user activity on server 2)
-
-**Benefits**: Scale beyond single-server limits
-
-**Challenges**: Complex queries, rebalancing, operational overhead
-
-:::tip Key Takeaway #11
+:::tip Key Takeaway #10
 Use replication for high availability and read scalability. Use partitioning when data exceeds single-server capacity.
 :::
 
-### NoSQL and NewSQL
+### 8.3. NoSQL and NewSQL
 
-**NoSQL databases** (Cassandra, DynamoDB, MongoDB) sacrifice some ACID properties for:
+**NoSQL databases** (Cassandra, DynamoDB, MongoDB) sacrifice ACID for horizontal scalability, high availability, and flexible schemas.
 
-- Horizontal scalability
-- High availability
-- Flexible schemas
-- Eventually consistent
+**NewSQL databases** (CockroachDB, Google Spanner, YugabyteDB) aim to provide ACID transactions and SQL with horizontal scalability.
 
-**NewSQL databases** (CockroachDB, Google Spanner, YugabyteDB) aim to provide:
-
-- ACID transactions
-- SQL interface
-- Horizontal scalability
-- Distributed architecture
-
-:::tip Key Takeaway #12
+:::tip Key Takeaway #11
 Use NoSQL and NewSQL databases when your scalability and availability requirements exceed what you can do with a relational database—but only if you can invest in the time and expertise of deploying and maintaining a distributed data store.
 :::
 
-## Backup and Recovery
+## 9. Backup and Recovery
 
-### Backup Strategies
+**In plain English:** Backups are like insurance—you hope you never need them, but when disaster strikes, they're invaluable.
+
+**In technical terms:** Backups create copies of data for disaster recovery. Strategies include snapshots (point-in-time copies), continuous backup (ongoing WAL copying), and replication (live copies).
+
+**Why it matters:** Data loss can destroy a business. Proper backups ensure you can recover from failures, accidental deletions, or ransomware attacks.
 
 **Backup Strategies**
 
@@ -592,7 +507,7 @@ Use NoSQL and NewSQL databases when your scalability and availability requiremen
 | Continuous Backup | Ongoing copy of all changes (WAL) | Point-in-time recovery to any moment | More complex, storage for logs |
 | Replication | Live copy on separate server | Fast failover, minimal data loss | Not a backup (corruption replicates) |
 
-**Backup recommendations**:
+**Backup best practices:**
 
 1. **Automate everything**: Use managed services or IaC
 2. **Test restores**: Backups are useless if they don't work
@@ -600,27 +515,26 @@ Use NoSQL and NewSQL databases when your scalability and availability requiremen
 4. **Encrypt backups**: Protect data at rest
 5. **Monitor backup status**: Alert on failures
 
-:::tip Key Takeaway #13
+:::tip Key Takeaway #12
 Use automated, tested backup strategies. Combine snapshots, continuous backups, and replication for comprehensive protection.
 :::
 
 ## Conclusion
 
-You've now learned how to store, query, replicate, and back up your data, as per the 13 key takeaways from this chapter:
+You've now learned how to store, query, replicate, and back up your data, as per the 12 key takeaways from this chapter:
 
 1. Keep your applications stateless. Store all your data in dedicated data stores.
 2. Don't roll your own data stores; always use mature, battle-tested, proven, off-the-shelf solutions.
 3. Use relational databases as your primary data store (the source of truth).
-4. Manage database schemas as code using migration tools.
-5. Use CDNs to cache static content, reducing latency and server load.
-6. Use object stores for scalable, durable file storage.
-7. Use document stores for semistructured data and full-text search.
-8. Use columnar databases for analytics and data warehousing.
-9. Use message queues to decouple services and ensure reliable delivery.
-10. Use event streams for real-time processing and event sourcing.
-11. Use replication for high availability and read scalability.
-12. Use NoSQL and NewSQL databases when scalability requirements exceed traditional databases.
-13. Use automated, tested backup strategies combining snapshots, continuous backups, and replication.
+4. Use CDNs to cache static content, reducing latency and server load.
+5. Use object stores for scalable, durable file storage.
+6. Use document stores for semistructured data and full-text search.
+7. Use columnar databases for analytics and data warehousing.
+8. Use message queues to decouple services and ensure reliable delivery.
+9. Use event streams for real-time processing and event sourcing.
+10. Use replication for high availability and read scalability.
+11. Use NoSQL and NewSQL databases when scalability requirements exceed traditional databases.
+12. Use automated, tested backup strategies combining snapshots, continuous backups, and replication.
 
 <TreeDiagram
   title="Data Storage Decision Tree"

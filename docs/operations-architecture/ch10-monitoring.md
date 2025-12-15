@@ -6,38 +6,48 @@ description: "Learn how to monitor your systems using logs, metrics, events, and
 
 import { ProcessFlow, StackDiagram, CardGrid, ComparisonTable, TreeDiagram, colors } from '@site/src/components/diagrams';
 
-# Chapter 10. How to Monitor Your Systems
+# Chapter 10: How to Monitor Your Systems
 
-In Chapter 9, you learned how to store, query, replicate, and back up your data. That chapter focused primarily on data about your customers, such as user profiles, purchases, and photos. This chapter focuses primarily on data that gives you visibility into your business, or what is typically referred to as **monitoring**.
+In Chapter 9, you learned how to store, query, replicate, and back up your data. That chapter focused primarily on data about your customers, such as user profiles, purchases, and photos.
 
-At LinkedIn, we struggled with monitoring early on. We collected metrics and logs, but the tools to understand that data were unusable, so we were often flying blind, and bugs and outages could go unnoticed. In 2010, an intern created inGraphs, a UI for visualizing our metrics. It had a profound impact on the company, as suddenly we could spot problems earlier and understand what users were doing. We overhauled monitoring even more as part of Project Inversion, and before long, inGraphs was on screens all over the office. As David Henke, LinkedIn's senior vice president of engineering and operations, liked to say: **if you can't measure it, you can't fix it.**
+**In plain English:** This chapter focuses on data that gives you visibility into your business—monitoring data that helps you understand what's happening in your systems.
+
+**In technical terms:** Monitoring is the practice of collecting, storing, analyzing, and alerting on operational data (logs, metrics, events) to detect problems, understand user behavior, and improve system performance.
+
+**Why it matters:** If you can't measure it, you can't fix it. At LinkedIn, creating inGraphs (a UI for visualizing metrics) had a profound impact—suddenly we could spot problems earlier and understand what users were doing.
 
 ## Table of Contents
 
-1. [Logs](#logs)
-   - [Log Levels](#log-levels)
-   - [Log Formatting](#log-formatting)
-   - [Structured Logging](#structured-logging)
-   - [Log Files and Rotation](#log-files-and-rotation)
-   - [Log Aggregation](#log-aggregation)
-2. [Metrics](#metrics)
-   - [Types of Metrics](#types-of-metrics)
-   - [Using Metrics](#using-metrics)
-   - [Example: Metrics in CloudWatch](#example-metrics-in-cloudwatch)
-3. [Events](#events)
-   - [Observability](#observability)
-   - [Tracing](#tracing)
-   - [Testing in Production](#testing-in-production-tip)
-4. [Alerts](#alerts)
-   - [Triggers](#triggers)
-   - [Notifications](#notifications)
-   - [On Call](#on-call)
-   - [Incident Response](#incident-response)
-   - [Example: Alerts in CloudWatch](#example-alerts-in-cloudwatch)
+1. [Logs](#1-logs)
+   - [Log Levels](#11-log-levels)
+   - [Log Formatting](#12-log-formatting)
+   - [Structured Logging](#13-structured-logging)
+   - [Log Files and Rotation](#14-log-files-and-rotation)
+   - [Log Aggregation](#15-log-aggregation)
+2. [Metrics](#2-metrics)
+   - [Types of Metrics](#21-types-of-metrics)
+   - [Using Metrics](#22-using-metrics)
+   - [Example: Metrics in CloudWatch](#23-example-metrics-in-cloudwatch)
+3. [Events](#3-events)
+   - [Observability](#31-observability)
+   - [Tracing](#32-tracing)
+   - [Testing in Production](#33-testing-in-production)
+4. [Alerts](#4-alerts)
+   - [Triggers](#41-triggers)
+   - [Notifications](#42-notifications)
+   - [On Call](#43-on-call)
+   - [Incident Response](#44-incident-response)
+   - [Example: Alerts in CloudWatch](#45-example-alerts-in-cloudwatch)
 
-## Logs
+## 1. Logs
 
-Almost every piece of software writes logs, which are records of what's happening in that software (e.g., interesting events, errors, debugging information). Interactive CLI tools typically write log messages to the terminal (stdout and stderr); other software typically writes log messages to files.
+**In plain English:** Logs are like a detailed diary of everything your software does—recording events, errors, and debugging information.
+
+**In technical terms:** Logs are chronological records of events in software, typically written to stdout/stderr or files, containing information about application state, errors, debugging information, and user actions.
+
+**Why it matters:** Logs are essential for debugging problems, analyzing user behavior, and providing audit trails for compliance.
+
+Almost every piece of software writes logs. Interactive CLI tools typically write log messages to the terminal (stdout and stderr); other software typically writes log messages to files.
 
 Logs are useful for:
 
@@ -49,7 +59,7 @@ Logs are useful for:
 Add logging throughout your code to give you visibility into what's happening in your systems.
 :::
 
-Instead of `console.log`, you should use a dedicated logging library (Log4j, winston, etc.) to get:
+Instead of `console.log`, use a dedicated logging library (Log4j, winston, etc.) to get:
 
 - Log levels
 - Log formatting
@@ -100,7 +110,13 @@ Instead of `console.log`, you should use a dedicated logging library (Log4j, win
   ]}
 />
 
-### Log Levels
+### 1.1. Log Levels
+
+**In plain English:** Log levels are like volume controls—you can turn up debugging details when investigating issues, or turn them down to reduce noise in production.
+
+**In technical terms:** Log levels are severity categories (Trace, Debug, Info, Warn, Error, Fatal) that let you filter log output dynamically without changing code.
+
+**Why it matters:** You can add verbose trace/debug logging without making production logs too noisy, and temporarily lower log levels while troubleshooting.
 
 Most logging libraries support multiple log levels to specify severity:
 
@@ -133,7 +149,13 @@ Log levels allow you to:
 - Temporarily lower log levels in production while troubleshooting
 - Easily scan logs visually or with tools like grep
 
-### Log Formatting
+### 1.2. Log Formatting
+
+**In plain English:** Log formatting is like using a consistent template for all your log messages, making them easier to read and search.
+
+**In technical terms:** Log formatting defines a standard structure for all log messages, typically including timestamp, request metadata, log level, and the message itself.
+
+**Why it matters:** Standardized patterns make logs easier to read and parse. Each log message becomes a self-contained story with contextual metadata.
 
 Logging libraries allow you to define standard formats for all messages:
 
@@ -159,9 +181,13 @@ Output:
 2024-10-05T20:17:49.332Z 1.2.3.4 GET /foo [error]: A message at error level
 ```
 
-Using log formatting ensures standardized patterns, making logs easier to read and parse. Each log message becomes a self-contained story with contextual metadata.
+### 1.3. Structured Logging
 
-### Structured Logging
+**In plain English:** Structured logging is like writing log messages as spreadsheet rows instead of free-form text—much easier for computers to search and analyze.
+
+**In technical terms:** Structured logging outputs logs in well-defined data formats (typically JSON) with key-value pairs instead of arbitrary text strings.
+
+**Why it matters:** Structured logs are both human-readable and machine-readable, making them easier to parse, search, filter, and analyze with tools.
 
 Instead of arbitrary text strings, structured logging outputs logs in well-defined data formats like JSON:
 
@@ -213,7 +239,13 @@ Advantages of structured logging:
 - Easier to parse, search, filter, and analyze
 - Shift from logging strings to logging key-value pairs with context
 
-### Log Files and Rotation
+### 1.4. Log Files and Rotation
+
+**In plain English:** Log rotation is like having multiple notebooks—when one fills up, you start a new one and archive the old ones, eventually discarding the oldest.
+
+**In technical terms:** Log rotation automatically renames, compresses, and deletes log files when they reach size or age limits, preventing disk space exhaustion.
+
+**Why it matters:** Without rotation, log files grow indefinitely and fill up your disk. Rotation manages storage automatically.
 
 When your code runs in production without you watching, capture log output and store it in files so you can review history anytime.
 
@@ -238,7 +270,13 @@ Log rotation prevents files from becoming too large and ensures you don't run ou
 - Compressing older log files
 - Deleting oldest files when maximum count is reached
 
-### Log Aggregation
+### 1.5. Log Aggregation
+
+**In plain English:** Log aggregation is like having a master search engine for all your servers' logs in one place, instead of hunting through files on individual machines.
+
+**In technical terms:** Log aggregation sends logs from all servers to a centralized system (Elasticsearch, Splunk, CloudWatch Logs) that provides unified search, filtering, and analysis across your entire infrastructure.
+
+**Why it matters:** When software runs across dozens of servers, finding the right log file becomes a significant challenge. Centralized logs solve this completely.
 
 When software runs across dozens of servers, finding the right log file becomes a significant challenge. Use log aggregation tools that send logs from all servers to a single, central destination.
 
@@ -311,7 +349,13 @@ Log aggregation advantages:
 Use log levels, log formatting, multiple loggers, structured logging, log file rotation, and log aggregation to make your logging more effective.
 :::
 
-## Metrics
+## 2. Metrics
+
+**In plain English:** Metrics are measurable numbers that tell you how your system is performing—like speedometers and fuel gauges for your applications.
+
+**In technical terms:** Metrics are quantitative measurements (counters, gauges, histograms) of system behavior collected at regular intervals, stored in time-series databases, and visualized on dashboards.
+
+**Why it matters:** Metrics help you detect problems (latency spikes), understand users (monthly active users), improve performance (identify bottlenecks), and track team effectiveness (DORA metrics).
 
 Metrics are quantitative measurements of important aspects of your software. Collecting, analyzing, and visualizing metrics gives you valuable insights:
 
@@ -326,7 +370,7 @@ Metrics provide continuous feedback enabling continuous improvement, central ten
 Use metrics to detect problems, understand user behavior, improve product and team performance, and more generally, as a mechanism for continuous feedback and improvement.
 :::
 
-### Types of Metrics
+### 2.1. Types of Metrics
 
 <TreeDiagram
   title="Categories of Metrics"
@@ -383,9 +427,13 @@ Use metrics to detect problems, understand user behavior, improve product and te
   }}
 />
 
-#### The Four Golden Signals (LETS)
+#### 2.1.1. The Four Golden Signals (LETS)
 
-A good starting point for application metrics:
+**In plain English:** The Four Golden Signals are the essential vital signs of your application—like checking someone's pulse, temperature, breathing rate, and blood pressure.
+
+**In technical terms:** LETS (Latency, Errors, Traffic, Saturation) are the four key application metrics recommended by Google's SRE book that provide comprehensive insight into application health.
+
+**Why it matters:** Monitoring these four signals catches the vast majority of problems. They're a great starting point for any monitoring strategy.
 
 <CardGrid
   title="The Four Golden Signals"
@@ -446,7 +494,13 @@ A good starting point for application metrics:
   ]}
 />
 
-### Using Metrics
+### 2.2. Using Metrics
+
+**In plain English:** Using metrics involves three steps: collect the numbers, save them somewhere, and visualize them on dashboards.
+
+**In technical terms:** Implement instrumentation to collect metrics, store them in a time-series database, and create dashboards and alerts to analyze and act on the data.
+
+**Why it matters:** Raw metrics are useless without collection, storage, and visualization. The complete pipeline enables actionable insights.
 
 To make use of metrics, follow three steps:
 
@@ -483,7 +537,7 @@ To make use of metrics, follow three steps:
 - Compatible with many metrics backends
 - Can collect metrics, logs, and traces
 
-### Example: Metrics in CloudWatch
+### 2.3. Example: Metrics in CloudWatch
 
 In this example, you'll use Amazon CloudWatch to view metrics for EC2 instances, Auto Scaling Groups, and Application Load Balancers. You'll also deploy Route 53 health checks for availability metrics and create a custom CloudWatch dashboard.
 
@@ -525,7 +579,13 @@ module "cloudwatch_dashboard" {
 Collect multiple types of metrics (availability, business, application, server, team) and build dashboards to focus on the most important metrics to your business.
 :::
 
-## Events
+## 3. Events
+
+**In plain English:** Events are structured records of things that happened in your system, richer than simple metrics but more organized than raw logs.
+
+**In technical terms:** Events are structured data records with high dimensionality and cardinality, typically containing timestamps, unique IDs, and contextual metadata enabling ad hoc analysis.
+
+**Why it matters:** Events enable observability—the ability to understand any state your system may have gotten itself into, including states you never anticipated.
 
 In addition to logs and metrics, structured events provide powerful insights:
 
@@ -533,7 +593,13 @@ In addition to logs and metrics, structured events provide powerful insights:
 - Tracing
 - Testing in production
 
-### Observability
+### 3.1. Observability
+
+**In plain English:** Observability is the ability to understand what's going wrong in your system by asking questions you didn't know to ask ahead of time.
+
+**In technical terms:** Observability is the property of a system that allows you to understand any internal state by interrogating it with external tools, without shipping new code—critical for dealing with unknown unknowns in distributed systems.
+
+**Why it matters:** As architectures become more complex (microservices, distributed systems), you encounter more unpredictable problems. Observability lets you debug these without pre-defining every possible query.
 
 As your architecture becomes more complicated (monolith to microservices, single-node to distributed), you'll encounter:
 
@@ -586,7 +652,13 @@ Structured events contain many dimensions (key-value pairs) with high cardinalit
 Instrument your code to publish structured events. Use observability tools to understand what your software is doing by performing iterative, ad hoc queries against these structured events.
 :::
 
-### Tracing
+### 3.2. Tracing
+
+**In plain English:** Tracing is like attaching a GPS tracker to a user's request as it bounces through your microservices, so you can see everywhere it went and how long each stop took.
+
+**In technical terms:** Distributed tracing assigns unique trace IDs to requests and propagates them through all microservices involved, collecting timestamps and metadata at each hop to create waterfall diagrams showing the complete request path.
+
+**Why it matters:** In microservices architectures, a single user request might trigger dozens of internal requests. Tracing shows you the full path and helps identify bottlenecks.
 
 When a single user request results in dozens of internal requests across many services, understanding the request flow becomes challenging. **Distributed tracing** tracks requests as they flow through a distributed system.
 
@@ -636,7 +708,13 @@ Tools: Zipkin, Jaeger, Honeycomb, SigNoz, Uptrace. OpenTelemetry is the recommen
 Use distributed tracing to visualize the path of requests through your microservices architecture.
 :::
 
-### Testing in Production (TIP)
+### 3.3. Testing in Production
+
+**In plain English:** Testing in production means deploying changes directly to real users and carefully monitoring what happens, instead of trying to perfectly simulate production in test environments.
+
+**In technical terms:** Testing in production (TIP) is the practice of deploying code changes to production systems while using feature toggles, gradual rollouts, comprehensive monitoring, and quick rollback capabilities to limit blast radius.
+
+**Why it matters:** As you scale, production becomes impossible to simulate perfectly. Testing in production provides faster feedback loops and tests against real user behavior.
 
 > Usually, testing checks a very strong notion of correctness on a few cases, and monitoring checks a very weak notion of correctness under the real production load.
 >
@@ -670,11 +748,23 @@ When to avoid TIP (use extensive pre-production testing instead):
 
 For low-cost bugs (e.g., minor UI glitches), TIP is ideal. For high-cost bugs, invest heavily in pre-production testing.
 
-## Alerts
+## 4. Alerts
+
+**In plain English:** Alerts are automatic notifications when something goes wrong—like a smoke detector that wakes you up when there's a fire.
+
+**In technical terms:** Alerts are automated notifications triggered when metrics, logs, or events exceed defined thresholds, routing notifications to humans or automated remediation systems.
+
+**Why it matters:** Monitoring helps you understand cause of incidents, but alerts help you discover incidents in the first place.
 
 Logs, metrics, and events help understand the cause of incidents, but how do you discover incidents in the first place? Configure **alerts** that notify you of problems.
 
-### Triggers
+### 4.1. Triggers
+
+**In plain English:** Triggers are the rules that decide when to send an alert—like setting your smoke detector's sensitivity.
+
+**In technical terms:** Triggers are conditional rules applied to metrics, logs, or events that determine when to fire an alert, typically based on threshold comparisons (absolute, relative, or historical).
+
+**Why it matters:** Good triggers catch real problems without creating alert fatigue. Bad triggers either miss issues or cry wolf constantly.
 
 For each alert, define triggers (rules) for when to send notifications. Triggers typically check if metrics, events, or logs exceed thresholds:
 
@@ -688,7 +778,13 @@ For each alert, define triggers (rules) for when to send notifications. Triggers
 
 When possible, handle triggers with automation (auto healing, auto scaling). If automation can't handle it, notify a human.
 
-### Notifications
+### 4.2. Notifications
+
+**In plain English:** Not every problem needs to wake someone up at 3 AM. Only send urgent alerts for issues that require immediate human action.
+
+**In technical terms:** Notifications should be sent to humans only when issues meet three criteria: actionable (can fix it), important (matters), and urgent (must act now). Otherwise, file tickets or send to chat rooms.
+
+**Why it matters:** Too many alerts lead to alert fatigue—people start ignoring all alerts, including the critical ones.
 
 Alerts that notify people have significant costs:
 
@@ -712,7 +808,13 @@ If a trigger doesn't meet all three, send nonurgent notification instead:
 Use alerts to notify you of problems, but only if those problems are actionable, important, and urgent.
 :::
 
-### On Call
+### 4.3. On Call
+
+**In plain English:** On-call rotations are like being the designated emergency contact—it's your turn to respond to alerts, but you shouldn't be getting calls constantly.
+
+**In technical terms:** On-call rotations are schedules assigning specific team members to respond to alerts at specific times, managed by tools like PagerDuty or Opsgenie.
+
+**Why it matters:** Being on call is stressful. Proper management (limiting toil, enforcing error budgets, recognizing responders) makes it sustainable.
 
 Create an on-call rotation: schedule assigning specific team members to respond to alerts at specific times. Modern tools (PagerDuty, Opsgenie) manage rotations and send alerts to smartphones.
 
@@ -781,7 +883,13 @@ Being on call is stressful. Best practices:
 Use an on-call rotation to deal with alerts, but make sure to keep toil in check, enforce an error budget, include developers in the rotation, and recognize those who resolved incidents.
 :::
 
-### Incident Response
+### 4.4. Incident Response
+
+**In plain English:** Incident response is your fire drill plan—a documented process everyone follows when things go wrong.
+
+**In technical terms:** Incident response is a documented plan defining response teams, SLOs/SLAs, communication channels, playbooks (step-by-step procedures), postmortems, and continuous improvement processes.
+
+**Why it matters:** Chaos during incidents makes things worse. A clear plan reduces stress, improves response time, and ensures nothing critical is forgotten.
 
 When an incident occurs, follow an incident-response plan. As your company grows, get the plan in writing (often required for compliance like SOC 2).
 
@@ -864,7 +972,7 @@ You'll never get alerts right the first time. Everything is constantly changing 
 Resolve incidents by assembling a response team, keeping stakeholders updated, fulfilling SLAs and SLOs, and following playbooks. After each incident, hold a blameless postmortem and update your alert settings.
 :::
 
-### Example: Alerts in CloudWatch
+### 4.5. Example: Alerts in CloudWatch
 
 Let's configure an alert for Route 53 health checks using CloudWatch Alarms. When the `HealthCheckStatus` metric drops below 1 (indicating the website is down), publish a message to Amazon SNS. You can subscribe to SNS to get notifications via email or SMS.
 

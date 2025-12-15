@@ -8,20 +8,31 @@ import { ProcessFlow, StackDiagram, CardGrid, ComparisonTable, TreeDiagram, colo
 
 # Chapter 2. How to Manage Your Infrastructure as Code
 
-In Chapter 1, you learned how to deploy your app by using PaaS and IaaS, but it required a lot of manual steps clicking around a web UI. This is fine while you're learning and experimenting, but managing everything at a company this way—sometimes called ClickOps—quickly leads to problems:
+## 2.1. The Problem with Manual Infrastructure Management
 
-**Deployments are slow and tedious**
-You can't deploy frequently or respond to problems or opportunities quickly.
+In Chapter 1, you deployed apps using PaaS and IaaS. But it required many manual steps clicking around a web UI.
 
-**Deployments are error prone and inconsistent**
-You end up with lots of bugs, outages, and late-night debugging sessions. You become fearful and slow to introduce new features.
+This approach—sometimes called ClickOps—creates serious problems:
 
-**Only one person knows how to deploy**
-That person is overloaded and never has time for long-term improvements. If they were to leave or get hit by a bus, everything would grind to a halt.
+- **Deployments are slow and tedious**: You can't deploy frequently or respond quickly to problems
+- **Deployments are error prone**: Manual steps lead to bugs, outages, and late-night debugging sessions
+- **Knowledge silos form**: Only one person knows how to deploy, creating bottlenecks and bus factor risks
 
-Fortunately, these days, there is a better way to do things: you can manage your infrastructure as code (IaC). Instead of clicking around manually, you use code to define, deploy, update, and destroy your infrastructure. This represents a key insight of DevOps: most tasks that you used to do manually can now be automated using code, as shown in Table 2-1.
+:::info[What is Infrastructure as Code?]
 
-**Table 2-1.** A key insight of DevOps is that you can manage almost everything as code
+**In plain English:** Infrastructure as code (IaC) means you write code files that describe what servers, databases, and networks you need, then run a tool that automatically creates them for you.
+
+**In technical terms:** IaC is the practice of defining infrastructure configuration in machine-readable definition files rather than interactive configuration tools or physical hardware configuration.
+
+**Why it matters:** IaC transforms infrastructure management from slow, manual, error-prone clicking to fast, automated, repeatable code execution. You can version, test, and reuse infrastructure definitions just like application code.
+
+
+
+## 2.2. The Core Insight of DevOps
+
+Most tasks you used to do manually can now be automated using code.
+
+**Table 2-1.** Managing everything as code
 
 | Task | How to manage as code | Example | Chapter |
 |------|----------------------|---------|---------|
@@ -37,58 +48,94 @@ Fortunately, these days, there is a better way to do things: you can manage your
 | Manage databases | Schema migrations | Use Knex.js to update your database schema | Chapter 9 |
 | Test for compliance | Policy as code | Check compliance via Open Policy Agent | Chapter 4 |
 
-If you search around, you'll quickly find many tools that allow you to manage your infrastructure as code, including Chef, Puppet, Ansible, Pulumi, Terraform, OpenTofu, AWS, CloudFormation, Docker, and Packer. Which one should you use? Many of the comparisons you find online do little more than list the general properties of each tool and make it sound like you could be equally successful with any of them. And while that's true in theory, it's not true in practice. These tools differ considerably from one another, and your odds of success go up significantly if you know how to pick the right tool for the job.
+## 2.3. Four Categories of IaC Tools
 
-This chapter will help you navigate the IaC space by introducing you to the four most common categories of IaC tools:
+This chapter introduces four common categories of IaC tools:
 
-- Ad hoc scripts (e.g., using a Bash script to deploy a server)
-- Configuration management tools (e.g., using Ansible to deploy a server)
-- Server templating tools (e.g., using Packer to build an image of a server)
-- Provisioning tools (e.g., using OpenTofu to deploy a server)
+1. **Ad hoc scripts**: Using Bash to deploy a server
+2. **Configuration management tools**: Using Ansible to deploy a server
+3. **Server templating tools**: Using Packer to build an image of a server
+4. **Provisioning tools**: Using OpenTofu to deploy a server
 
-You'll work through examples to deploy the same infrastructure by using each of these approaches, which will allow you to see how different IaC categories perform across a variety of dimensions (e.g., verbosity, consistency, and scale), so that you can pick the right tool for the job.
+You'll work through examples with each approach. This lets you compare how different IaC categories perform across key dimensions like verbosity, consistency, and scale.
 
-Note that this chapter focuses on tools for managing infrastructure, whereas the next chapter focuses on tools for managing apps. These two domains have a lot of overlap, as you deploy infrastructure to run apps, and you may even deploy those apps by using IaC tools (you'll see examples of just that in this chapter). However, as you'll see, there are key differences between the infrastructure domain and the app domain. In the infrastructure domain, you use IaC tools such as OpenTofu to configure servers, load balancers, and networks. In the app domain you use orchestration tools such as Kubernetes to handle scheduling, auto scaling, auto healing, and service communication.
+:::info[Infrastructure vs Apps]
 
-Before digging into the details of various IaC tools, it's worth asking, why bother? Learning and adopting new tools has a cost, so what are the benefits of IaC that make this worthwhile? This is the focus of the next section.
+This chapter focuses on tools for managing **infrastructure** (servers, load balancers, networks).
 
-## Table of Contents
+Chapter 3 focuses on tools for managing **apps** (scheduling, auto scaling, auto healing, service communication).
 
-1. [The Benefits of IaC](#the-benefits-of-iac)
-2. [Ad Hoc Scripts](#ad-hoc-scripts)
-3. [Configuration Management Tools](#configuration-management-tools)
-4. [Server Templating Tools](#server-templating-tools)
-5. [Provisioning Tools](#provisioning-tools)
-6. [Using Multiple IaC Tools Together](#using-multiple-iac-tools-together)
-7. [Adopting IaC](#adopting-iac)
-8. [Conclusion](#conclusion)
+While these domains overlap, they require different tools and approaches.
 
-## The Benefits of IaC
 
-When your infrastructure is defined as code, you can use a variety of software engineering practices to dramatically improve your software delivery processes, including the following:
 
-**Speed and safety**
-Instead of a person doing deployments manually, which is slow and error prone, defining your infrastructure as code allows a computer to carry out the deployment steps, which will be significantly faster and more reliable.
+## 2.4. Table of Contents
 
-**Documentation**
-If your infrastructure is defined as code, the state of your infrastructure is in source files that anyone can read, rather than locked away in a single person's head. IaC acts as a form of documentation, allowing everyone in the organization to understand how things work.
+1. [The Benefits of IaC](#25-the-benefits-of-iac)
+2. [Ad Hoc Scripts](#26-ad-hoc-scripts)
+3. [Configuration Management Tools](#27-configuration-management-tools)
+4. [Server Templating Tools](#28-server-templating-tools)
+5. [Provisioning Tools](#29-provisioning-tools)
+6. [Using Multiple IaC Tools Together](#210-using-multiple-iac-tools-together)
+7. [Adopting IaC](#211-adopting-iac)
+8. [Conclusion](#212-conclusion)
 
-**Version control**
-Storing your IaC source files in version control (which you'll do in Chapter 4) makes it easier to collaborate on your infrastructure, debug issues (e.g., by checking the version history to find out what changed), and to resolve issues (e.g., by reverting back to a previous version).
+## 2.5. The Benefits of IaC
 
-**Validation**
-If the state of your infrastructure is defined in code, for every single change, you can perform a code review, run a suite of automated tests, and pass the code through static analysis tools—all practices known to significantly reduce the chance of defects (you'll see examples of all these practices in Chapter 4).
+When your infrastructure is defined as code, you can use software engineering practices to dramatically improve your delivery process.
 
-**Self-service**
-If your infrastructure is defined in code, developers can kick off their own deployments instead of relying on others to do it.
+### 2.5.1. Speed and Safety
 
-**Reuse**
-You can package your infrastructure into reusable modules so that instead of doing every deployment for every product in every environment from scratch, you can build on top of known, documented, battle-tested pieces.
+- A computer executes deployment steps instead of a person
+- Computers are significantly faster and more reliable
+- No human errors from mistyped commands or missed steps
 
-**Happiness**
-One other important, and often overlooked, reason that you should use IaC is happiness. Manual deployments are repetitive and tedious. Most people resent this type of work, since it involves no creativity, no challenge, and no recognition. You could deploy code perfectly for months, and no one will take notice—until that one day when you mess it up. IaC offers a better alternative that allows computers to do what they do best (automation) and developers to do what they do best (creativity).
+### 2.5.2. Documentation
 
-Now that you have a sense of why IaC is so valuable, in the following sections, you'll explore the most common categories of IaC tools, starting with ad hoc scripts.
+- Infrastructure state lives in source files anyone can read
+- No more knowledge locked in one person's head
+- New team members can understand the system by reading code
+
+### 2.5.3. Version Control
+
+- Store IaC source files in version control (covered in Chapter 4)
+- Easier collaboration on infrastructure changes
+- Debug issues by checking version history to see what changed
+- Resolve issues by reverting to a previous version
+
+### 2.5.4. Validation
+
+- Perform code reviews for every infrastructure change
+- Run automated test suites before deploying
+- Pass code through static analysis tools
+- All practices proven to significantly reduce defects (examples in Chapter 4)
+
+### 2.5.5. Self-Service
+
+- Developers can kick off their own deployments
+- No waiting for operations team availability
+- Faster iteration and experimentation
+
+### 2.5.6. Reuse
+
+- Package infrastructure into reusable modules
+- Build on top of known, documented, battle-tested pieces
+- No need to recreate infrastructure from scratch for every project
+
+### 2.5.7. Happiness
+
+- Manual deployments are repetitive and tedious
+- No creativity, no challenge, no recognition in manual work
+- Perfect deployments for months go unnoticed until one mistake
+- IaC lets computers do automation and developers do creativity
+
+:::warning[The Cost of IaC]
+
+Learning and adopting IaC tools has costs. Your team must learn new tools, techniques, and ways of working.
+
+Only adopt IaC if the benefits outweigh the costs for your specific situation. Not every team needs IaC.
+
+
 
 <CardGrid
   columns={2}
@@ -140,30 +187,36 @@ Now that you have a sense of why IaC is so valuable, in the following sections, 
   ]}
 />
 
-## Ad Hoc Scripts
+## 2.6. Ad Hoc Scripts
 
-The first approach you might think of for managing your infrastructure as code is to use an ad hoc script. You take whatever task you were doing manually, break it into discrete steps, and use your favorite scripting language (e.g., Bash, Ruby, Python) to capture each of those steps in code. When you run that code, it can automate the process of creating infrastructure for you. The best way to understand this is to try it out, so let's go through an example of an ad hoc script written in Bash, and then you'll learn about the strengths and weaknesses of using scripts for managing infrastructure.
+### 2.6.1. What Are Ad Hoc Scripts?
 
-### Example: Deploy an EC2 Instance by Using a Bash Script
+:::info[Ad Hoc Scripts Explained]
 
-> **Example Code**
->
-> As a reminder, you can find all the code examples in the book's repo in GitHub.
+**In plain English:** Ad hoc scripts are custom programs you write in languages like Bash, Python, or Ruby that automate tasks you used to do manually.
 
-As an example, let's create a Bash script that automates all the manual steps you did in Chapter 1 to deploy a simple Node.js app in AWS. Head into the `fundamentals-of-devops` folder you created in Chapter 1 to work through the examples in this book, and create a new subfolder for this chapter and the Bash script:
+**In technical terms:** An ad hoc script breaks a manual process into discrete steps and captures each step in executable code using a general-purpose scripting language.
+
+**Why it matters:** Ad hoc scripts are often the first step toward automation. They're quick to write and require no special tools, making them ideal for one-off tasks.
+
+
+
+### 2.6.2. Example: Deploy an EC2 Instance by Using a Bash Script
+
+Create a folder structure for this chapter's examples:
 
 ```bash
 $ cd fundamentals-of-devops
 $ mkdir -p ch2/bash
 ```
 
-Copy the exact same user data script from Chapter 1 into a file called `user-data.sh` within the `ch2/bash` folder:
+Copy the user data script from Chapter 1:
 
 ```bash
 $ cp ch1/ec2-user-data-script/user-data.sh ch2/bash/
 ```
 
-Next, create a Bash script called `deploy-ec2-instance.sh`, with the contents shown in Example 2-1.
+Create a Bash script called `deploy-ec2-instance.sh`:
 
 **Example 2-1.** Bash script to deploy an EC2 instance (`ch2/bash/deploy-ec2-instance.sh`)
 
@@ -175,28 +228,28 @@ set -e
 export AWS_DEFAULT_REGION="us-east-2"
 user_data=$(cat user-data.sh)
 
-# 1
+# 1. Create a security group
 security_group_id=$(aws ec2 create-security-group \
   --group-name "sample-app" \
   --description "Allow HTTP traffic into the sample app" \
   --output text \
   --query GroupId)
 
-# 2
+# 2. Allow inbound HTTP requests on port 80
 aws ec2 authorize-security-group-ingress \
   --group-id "$security_group_id" \
   --protocol tcp \
   --port 80 \
   --cidr "0.0.0.0/0" > /dev/null
 
-# 3
+# 3. Look up the ID of the Amazon Linux AMI
 image_id=$(aws ec2 describe-images \
   --owners amazon \
   --filters 'Name=name,Values=al2023-ami-2023.*-x86_64' \
   --query 'reverse(sort_by(Images, &CreationDate))[:1] | [0].ImageId' \
   --output text)
 
-# 4
+# 4. Deploy an EC2 instance
 instance_id=$(aws ec2 run-instances \
   --image-id "$image_id" \
   --instance-type "t2.micro" \
@@ -211,32 +264,22 @@ public_ip=$(aws ec2 describe-instances \
   --output text \
   --query 'Reservations[*].Instances[*].PublicIpAddress')
 
-# 5
+# 5. Output important information
 echo "Instance ID = $instance_id"
 echo "Security Group ID = $security_group_id"
 echo "Public IP = $public_ip"
 ```
 
-If you're not an expert in Bash syntax, all you have to know about this script is that it uses the AWS CLI to automate the exact steps you did manually in the AWS console in Chapter 1:
+### 2.6.3. Running the Script
 
-1. Create a security group.
-2. Update the security group to allow inbound HTTP requests on port 80.
-3. Look up the ID of the Amazon Linux AMI.
-4. Deploy an EC2 instance that will run the Amazon Linux AMI from 3, on a t2.micro instance, with the security group from 1, the user data script from `user-data.sh`, and the Name tag set to `sample-app`.
-5. Output the IDs of the security group and EC2 instance and the public IP of the EC2 instance.
-
-> **Watch Out for Snakes: These Simplified Examples Are for Learning, Not Production**
->
-> The examples in this chapter are still simplified for learning and not suitable for production usage, because of the security concerns and user data limitations explained in "Watch Out for Snakes: These Examples Have Several Problems". You'll see how to resolve these limitations in the next chapter.
-
-If you want to run the script, you first need to give it execute permissions:
+Give the script execute permissions:
 
 ```bash
 $ cd ch2/bash
 $ chmod u+x deploy-ec2-instance.sh
 ```
 
-Next, install the AWS CLI (minimum version 2.0), authenticate to AWS, and run the script as follows:
+Install the AWS CLI (minimum version 2.0), authenticate to AWS, and run:
 
 ```bash
 $ ./deploy-ec2-instance.sh
@@ -245,74 +288,175 @@ Security Group ID = sg-09251ea2fe2ab2828
 Public IP = 52.15.237.52
 ```
 
-After the script finishes, give the EC2 instance a minute or two to boot up and then try opening `http://<Public IP>` in your web browser, where `<Public IP>` is the IP address the script outputs at the end. You should see this:
+After the script finishes, wait 1-2 minutes for the EC2 instance to boot. Open `http://<Public IP>` in your browser.
+
+You should see:
 
 ```
 Hello, World!
 ```
 
-Congrats, you are now running your app by using an ad hoc script!
+:::warning[Simplified Examples for Learning]
 
-> **Get Your Hands Dirty**
+The examples in this chapter are simplified for learning and not suitable for production. They have security concerns and user data limitations explained in Chapter 1.
+
+You'll see how to resolve these limitations in Chapter 3.
+
+
+
+### 2.6.4. Exercises
+
+Try these exercises to go deeper:
+
+- What happens if you run the Bash script a second time? Why?
+- How do you change the script to run multiple EC2 instances?
+
+When you're done, manually undeploy the EC2 instance to avoid unwanted charges.
+
+### 2.6.5. How Ad Hoc Scripts Stack Up
+
+Use these criteria to compare IaC tool categories:
+
+#### 2.6.5.1. CRUD
+
+:::info[CRUD Operations]
+
+**In plain English:** CRUD stands for Create, Read, Update, and Delete—the four basic operations for managing anything.
+
+**In technical terms:** CRUD operations represent the complete lifecycle management of infrastructure resources, from initial provisioning through ongoing maintenance to final decommissioning.
+
+**Why it matters:** Good infrastructure tools must handle all four operations. Tools that only support "create" lead to orphaned resources and management headaches.
+
+
+
+**Ad hoc scripts:** Most ad hoc scripts handle only **create**.
+
+- This script creates a security group and EC2 instance
+- If you run it a second time, it has no awareness that resources already exist
+- It will always try to create new infrastructure from scratch, causing errors
+- No built-in support for deleting infrastructure
+
+#### 2.6.5.2. Scale
+
+**Ad hoc scripts:** Difficult to scale.
+
+- Solving the CRUD problem for one EC2 instance is hard enough
+- Real architectures may contain hundreds of instances plus databases, load balancers, and networking
+- No easy way to track and manage large amounts of infrastructure
+
+#### 2.6.5.3. Deployment Strategies
+
+**Ad hoc scripts:** Must implement from scratch.
+
+- Real-world architectures need rolling deployments and blue-green deployments
+- You'd have to write the logic for each deployment strategy yourself
+- No built-in support or reusable patterns
+
+#### 2.6.5.4. Idempotency
+
+:::info[Idempotency Explained]
+
+**In plain English:** Idempotent code produces the same result whether you run it once or multiple times.
+
+**In technical terms:** An idempotent operation can be applied multiple times without changing the result beyond the initial application, ensuring consistency and safety in repeated executions.
+
+**Why it matters:** Idempotent code is safe to rerun. If a deployment fails halfway through, you can simply run it again without worrying about side effects.
+
+
+
+**Ad hoc scripts:** Not idempotent.
+
+- If you ran this script once, it creates the security group and EC2 instance
+- If you ran it again, it tries to create them again, causing errors
+- You can't have two security groups with the same name
+
+#### 2.6.5.5. Consistency
+
+**Ad hoc scripts:** Inconsistent.
+
+- You can use any programming language you want
+- You can write the code however you want
+- Every developer may write scripts differently
+- Large repositories of ad hoc scripts devolve into unmaintainable spaghetti code
+
+Tools designed for IaC provide a single, idiomatic way to solve each problem. This makes codebases more consistent and easier to maintain.
+
+#### 2.6.5.6. Verbosity
+
+**Ad hoc scripts:** Very verbose.
+
+- This Bash script plus user data script: ~80 lines of code
+- That's without CRUD support, deployment strategies, or idempotency
+- A proper script handling all these would be many times longer
+- Production infrastructure with hundreds of instances becomes untenable
+
+Purpose-built IaC tools typically provide more concise APIs for common infrastructure tasks.
+
+> **Insight: When to Use Ad Hoc Scripts**
 >
-> Here are a few exercises you can try at home to go deeper:
->
-> - What happens if you run the Bash script a second time? Why?
-> - How do you change the script to run multiple EC2 instances?
->
-> When you're done experimenting with this script, you should manually undeploy the EC2 instance, as shown previously in Figure 1-9. This ensures that your account doesn't start accumulating any unwanted charges.
 
-You've now seen one way to manage your infrastructure as code. Well, sort of. This script, and most ad hoc scripts, have quite a few drawbacks in terms of using them to manage infrastructure, as discussed next.
+Ad hoc scripts are great for small, one-off tasks, but not for managing all your infrastructure as code.
 
-### How Ad Hoc Scripts Stack Up
+They remain the "glue and duct tape" of the DevOps world. Use them for quick automation, but rely on purpose-built tools for infrastructure management.
 
-You can use certain criteria, which I'll refer to as the IaC category criteria, to compare categories of IaC tools. In this section, I'll flush out how ad hoc scripts stack up according to the IaC category criteria; in later sections, you'll see how the other IaC categories perform along the same criteria, giving you a consistent way to compare the options. Here are the criteria:
 
-**CRUD**
-CRUD stands for create, read, update, and delete. To manage infrastructure as code, you typically need support for all four of these operations, whereas most ad hoc scripts handle only one: create. For example, this script can create a security group and EC2 instance, but if you run this script a second or third time, the script doesn't know how to "read" the state of the world, so it has no awareness that the security group and EC2 instance already exist, and will always try to create new infrastructure from scratch. Likewise, this script has no built-in support for deleting any of the infrastructure it creates (which is why you had to manually terminate the EC2 instance). So while ad hoc scripts make it faster to create infrastructure, they don't really help you manage it.
 
-**Scale**
-Solving the CRUD problem in an ad hoc script for a single EC2 instance is hard enough, but a real architecture may contain hundreds of instances, plus databases, load balancers, networking configuration, and so on. There's no easy way to scale up scripts to keep track of and manage so much infrastructure.
+## 2.7. Configuration Management Tools
 
-**Deployment strategies**
-In real-world architectures, you typically need to use various deployment strategies to roll out updates, such as rolling deployments and blue-green deployments (you'll learn more about deployment strategies in Chapter 5). With ad hoc scripts, you'd have to write the logic for each deployment strategy from scratch.
+### 2.7.1. What Are Configuration Management Tools?
 
-**Idempotency**
-To manage infrastructure, you typically want code that is idempotent, which means it's safe to rerun multiple times, as it will always produce the same effect as if you ran it once. Most ad hoc scripts are not idempotent. For example, if you ran the Bash script once, and it created the security group and EC2 instance, and then you ran the script again, it would try to create another security group and EC2 instance. This is probably not what you want, and it would also lead to an error, as you can't have two security groups with the same name.
+:::info[Configuration Management Explained]
 
-**Consistency**
-The great thing about ad hoc scripts is that you can use any programming language you want, and you can write the code however you want. The terrible thing about ad hoc scripts is that you can use any programming language you want, and you can write the code however you want. I wrote the Bash script one way; you might write it another way; your coworker may choose a different language entirely. If you've ever had to maintain a large repository of ad hoc scripts, you know that it almost always devolves into a mess of unmaintainable spaghetti code. As you'll see shortly, tools that are designed specifically for managing infrastructure as code often provide a single, idiomatic way to solve each problem, so your codebase tends to be more consistent and easier to maintain.
+**In plain English:** Configuration management tools like Chef, Puppet, and Ansible automatically set up and configure software on your servers.
 
-**Verbosity**
-The Bash script to launch a simple EC2 instance, plus the user data script, add up to around 80 lines of code—and that's without the code for CRUD, deployment strategies, and idempotency. An ad hoc script that handles all these properly would be many times longer. And we're talking about just one EC2 instance; your production infrastructure may include hundreds of instances, plus databases, load balancers, network configurations, and so on. The amount of custom code it takes to manage all this with ad hoc scripts quickly becomes untenable. As you'll see shortly, tools designed specifically for managing infrastructure as code typically provide APIs that are more concise for accomplishing common infrastructure tasks.
+**In technical terms:** Configuration management tools use domain-specific languages to define desired server state, then reconcile actual state with desired state through idempotent operations executed by agents or agentless SSH connections.
 
-Ad hoc scripts have always been, and will always be, a big part of software delivery. They are the glue and duct tape of the DevOps world. However, they are not the best choice as a primary tool for managing infrastructure as code.
+**Why it matters:** Configuration management tools emerged before cloud computing was ubiquitous. They solve the problem of configuring many servers consistently and maintaining that configuration over time.
 
-> **Insight**
->
-> Ad hoc scripts are great for small, one-off tasks, but not for managing all your infrastructure as code.
 
-If you're going to be managing all your infrastructure as code, you should use an IaC tool that is purpose-built for the job, such as one of the ones discussed in the next several sections.
 
-## Configuration Management Tools
+### 2.7.2. How Configuration Management Works
 
-After trying out ad hoc scripts and hitting all the issues mentioned in the previous section, the software industry moved on to configuration management tools, such as Chef, Puppet, and Ansible (full list). These tools first started to appear before cloud computing was ubiquitous, so they were originally designed to assume that someone else had done the work of setting up the hardware (e.g., your Ops team racked the servers in your own data center), and the primary purpose of these tools was to handle the software, including configuring the OS, installing dependencies, and deploying and updating apps.
+Each tool uses a different domain-specific language (DSL):
 
-Each configuration management tool has you write code in a different domain-specific language (DSL). For example, with Chef, you write code in a DSL built on top of Ruby, whereas with Ansible, you write code in a DSL built on top of YAML. Once you've written the code, most configuration management tools work to update your servers to match the desired state in your code. To update your servers, configuration management tools rely on the following two items:
+- **Chef**: DSL built on top of Ruby
+- **Ansible**: DSL built on top of YAML
+- **Puppet**: DSL built on top of Ruby
 
-**Management servers**
-You run one or more management servers (Chef Server, Puppet Server, or Ansible Automation Controller), which are responsible for communicating with the rest of your servers, tracking the state of those servers, providing a central UI and API to manage those servers, and running a reconciliation loop to continuously ensure that the configuration of each server matches your desired configuration.
+Most configuration management tools rely on two components:
 
-**Agents**
-Chef and Puppet require you to install custom agents (Chef Client and Puppet Agent) on each server, which are responsible for connecting to and authenticating with the management servers. You can configure the management servers to either push changes to these agents or to have the agents pull changes from the management servers. Ansible, on the other hand, pushes changes to your servers over SSH, which is preinstalled on most Linux/Unix servers by default (you'll learn more about SSH in Chapter 7). Whether you rely on agents or SSH, this leads to a chicken-and-egg problem: to be able to configure your servers (with configuration management tools), you first have to configure your servers (install agents or set up SSH authentication). Solving this chicken-and-egg problem usually requires either manual intervention or additional tools.
+#### 2.7.2.1. Management Servers
 
-The best way to understand configuration management is to see it in action, so let's go through an example of using Ansible to deploy and configure servers. Then you'll see how configuration management tools stack up against the IaC category criteria.
+- Run one or more management servers (Chef Server, Puppet Server, or Ansible Automation Controller)
+- Communicate with all your servers
+- Track the state of those servers
+- Provide a central UI and API
+- Run a reconciliation loop to ensure servers match desired configuration
 
-### Example: Deploy an EC2 Instance by Using Ansible
+#### 2.7.2.2. Agents
 
-To be able to use configuration management, you first need a server. This section will show you how to deploy an EC2 instance by using Ansible. Note that deploying and managing servers (hardware) is not really what configuration management tools were designed to do, but for spinning up a single server for learning and testing, Ansible is good enough.
+**Chef and Puppet approach:**
 
-Create a new folder called `ansible`:
+- Require custom agents on each server (Chef Client and Puppet Agent)
+- Agents connect to and authenticate with management servers
+- Management servers can push changes to agents
+- Agents can pull changes from management servers
+
+**Ansible approach:**
+
+- Pushes changes over SSH
+- SSH is preinstalled on most Linux/Unix servers by default
+- No custom agents required
+
+**The chicken-and-egg problem:**
+
+- To configure your servers, you first have to configure your servers
+- You must install agents or set up SSH authentication
+- Solving this usually requires manual intervention or additional tools
+
+### 2.7.3. Example: Deploy an EC2 Instance by Using Ansible
+
+Create a new folder for Ansible examples:
 
 ```bash
 $ cd fundamentals-of-devops
@@ -320,7 +464,7 @@ $ mkdir -p ch2/ansible
 $ cd ch2/ansible
 ```
 
-Inside the Ansible folder, create an Ansible playbook called `create_ec2_instances_playbook.yml`, with the contents shown in Example 2-2.
+Create an Ansible playbook called `create_ec2_instances_playbook.yml`:
 
 **Example 2-2.** Ansible playbook to deploy EC2 instances (`ch2/ansible/create_ec2_instances_playbook.yml`)
 
@@ -374,35 +518,40 @@ Inside the Ansible folder, create an Ansible playbook called `create_ec2_instanc
           Ansible: "{{ base_name }}"  # 8
 ```
 
-An Ansible playbook specifies the hosts to run on, some variables, and then a list of tasks to execute on those hosts. Each task runs a module, which is a unit of code that can execute various commands. The preceding playbook does the following:
+**What this playbook does:**
 
-1. **Specify the hosts**: The `hosts` entry specifies where this playbook will run. Most playbooks run on remote hosts (on servers you're configuring), as you'll see in the next section, but this playbook runs on `localhost`, as it is just making a series of API calls to AWS to deploy a server.
+1. **Hosts**: Runs on `localhost` (making AWS API calls, not configuring remote servers)
+2. **Variables**: Defines `num_instances`, `base_name`, and `http_port` with defaults
+3. **Security group**: Creates security group allowing HTTP on `http_port` and SSH on port 22
+4. **EC2 key pair**: Creates public/private key pair for SSH authentication
+5. **Private key**: Saves to `{{ base_name }}.key` (default: `sample_app_ansible.key`)
+6. **AMI lookup**: Finds the latest Amazon Linux AMI
+7. **EC2 instances**: Creates one or more instances based on `num_instances`
+8. **Tag**: Sets the `Ansible` tag to `{{ base_name }}` for later discovery
 
-2. **Define variables**: The `vars` block defines three variables used throughout the playbook: `num_instances`, which specifies the number of EC2 instances to create (default: 1); `base_name`, which specifies the name of all the resources created by this playbook (default: `sample_app_ansible`); and `http_port`, which specifies the port the instances should listen on for HTTP requests (default: 8080). In this chapter, you'll use the default values for all these variables, but in Chapter 3, you'll see how to override these variables.
-
-3. **Create a security group**: The first task in the playbook uses the `amazon.aws.ec2_security_group` module to create a security group in AWS. The preceding code configures this security group to allow inbound HTTP requests on `http_port` and inbound SSH requests on port 22. Note the use of Jinja templating syntax, such as `{{ base_name }}` and `{{ http_port }}`, to dynamically fill in the values of the variables defined in 2.
-
-4. **Create an EC2 key pair**: An EC2 key pair is a public/private key pair that can be used to authenticate to an EC2 instance over SSH.
-
-5. **Save the private key**: Store the private key of the EC2 key pair locally in a file called `{{ base_name }}.key`, which with the default variable values will resolve to `sample_app_ansible.key`. You'll use this private key in the next section to authenticate to the EC2 instance.
-
-6. **Look up the ID of the Amazon Linux AMI**: Use the `ec2_ami_info` module to do the same lookup you saw in the Bash script with `aws ec2 describe-images`.
-
-7. **Create EC2 instances**: Create one or more EC2 instances (based on the `num_instances` variable) that run Amazon Linux and use the security group and public key from the previous steps.
-
-8. **Tag the instance**: This sets the `Ansible` tag on the instance to `{{ base_name }}`, which will default to `sample_app_ansible`. You'll use this tag in the next section.
-
-To run this Ansible playbook, install Ansible (minimum version 2.17), authenticate to AWS, and run the following:
+To run this playbook, install Ansible (minimum version 2.17), authenticate to AWS, and run:
 
 ```bash
 $ ansible-playbook -v create_ec2_instances_playbook.yml
 ```
 
-When the playbook finishes running, you should have a server running in AWS. Now you can see what configuration management tools are really designed to do: configure servers to run software.
+### 2.7.4. Example: Configure a Server by Using Ansible
 
-### Example: Configure a Server by Using Ansible
+Now you'll see what configuration management tools are really designed to do: configure servers to run software.
 
-For Ansible to be able to configure your servers, you have to provide an inventory, which is a file specifying which servers you want configured, and how to connect to them. If you have a set of physical servers on prem, you can put the IP addresses of those servers in an inventory file, as shown in Example 2-3.
+#### 2.7.4.1. Ansible Inventory
+
+:::info[Inventory Explained]
+
+**In plain English:** An inventory is a list of servers you want to configure, organized into groups, along with instructions for how to connect to them.
+
+**In technical terms:** An Ansible inventory is a structured data source (static or dynamic) defining hosts, groups, and connection parameters used to target playbook execution.
+
+**Why it matters:** Inventories separate infrastructure topology from configuration logic, making playbooks reusable across different environments.
+
+
+
+**Static inventory** for physical servers on-prem:
 
 **Example 2-3.** Static Ansible inventory (`inventory.yml`)
 
@@ -418,9 +567,9 @@ dbservers:
     10.16.20.5:
 ```
 
-The preceding file organizes your servers into groups: the `webservers` group has two servers and the `dbservers` group has three servers. You'll then be able to write Ansible playbooks that target the hosts in specific groups.
+**Dynamic inventory** for cloud servers:
 
-If you are running servers in the cloud, where servers come and go often and IP addresses change frequently, you're better off using an inventory plugin that can dynamically discover your servers. For example, you can use the `aws_ec2` inventory plugin to discover the EC2 instance you deployed in the preceding section. Create a file called `inventory.aws_ec2.yml` with the contents shown in Example 2-4.
+Create `inventory.aws_ec2.yml` to dynamically discover EC2 instances:
 
 **Example 2-4.** Dynamic Ansible inventory (`ch2/ansible/inventory.aws_ec2.yml`)
 
@@ -433,12 +582,12 @@ keyed_groups:
     leading_separator: ''  # 2
 ```
 
-This code does the following:
+1. **Create groups**: Based on the `Ansible` tag (set to `sample_app_ansible`)
+2. **Disable underscore**: By default, Ansible adds a leading underscore; this disables it
 
-1. Create groups based on the `Ansible` tag of the instance. In the preceding section, you set this tag to `sample_app_ansible`, so that will be the name of the group.
-2. By default, Ansible adds a leading underscore to group names. This disables it so the group name matches the tag name.
+#### 2.7.4.2. Group Variables
 
-For each group in your inventory, you can specify group variables to configure how to connect to the servers in that group. You define these variables in YAML files in the `group_vars` folder, with the name of the file set to the name of the group. For example, for the EC2 instance in the `sample_app_ansible` group, you should create a file in `group_vars/sample_app_ansible.yml` with the contents shown in Example 2-5.
+For each group, define connection parameters in `group_vars/<group_name>.yml`:
 
 **Example 2-5.** Group variables (`ch2/ansible/group_vars/sample_app_ansible.yml`)
 
@@ -448,13 +597,13 @@ ansible_ssh_private_key_file: sample_app_ansible.key  # 2
 ansible_host_key_checking: false  # 3
 ```
 
-This file defines the following group variables:
+1. **Username**: Use `ec2-user` for Amazon Linux AMIs
+2. **Private key**: Use the key saved in the previous section
+3. **Host key checking**: Skip to avoid interactive prompts
 
-1. Use `ec2-user` as the username to connect to the EC2 instance. This is the username you need to use with Amazon Linux AMIs.
-2. Use the private key at `sample_app_ansible.key` to authenticate to the instance. This is the private key the playbook saved in the previous section.
-3. Skip host key checking so you don't get interactive prompts from Ansible.
+#### 2.7.4.3. Configuration Playbook
 
-Alright, with the inventory stuff out of the way, you can now create a playbook to configure your server to run the Node.js sample app. Create a file called `configure_sample_app_playbook.yml` with the contents shown in Example 2-6.
+Create `configure_sample_app_playbook.yml`:
 
 **Example 2-6.** Sample app playbook (`ch2/ansible/configure_sample_app_playbook.yml`)
 
@@ -467,12 +616,22 @@ Alright, with the inventory stuff out of the way, you can now create a playbook 
     - sample-app  # 2
 ```
 
-This playbook does two things:
+1. **Target**: Servers in the `sample_app_ansible` group
+2. **Role**: Configure servers using the `sample-app` role
 
-1. Target the servers in the `sample_app_ansible` group, which should be a group with the EC2 instance you deployed in the previous section.
-2. Configure the servers by using an Ansible role called `sample-app`, as discussed next.
+#### 2.7.4.4. Ansible Roles
 
-An Ansible role defines a logical profile of an application in a way that promotes modularity and code reuse. Ansible roles also provide a standardized way to organize tasks, templates, files, and other configuration as per the following folder structure:
+:::info[Ansible Roles Explained]
+
+**In plain English:** An Ansible role is a standardized folder structure that packages related tasks, files, and templates together for easy reuse.
+
+**In technical terms:** A role defines a logical profile of an application with modular components (tasks, handlers, files, templates, variables) organized in a conventional directory structure.
+
+**Why it matters:** Roles promote code reuse and provide a consistent way to organize Ansible code, making it easier to navigate and maintain.
+
+
+
+**Standard role folder structure:**
 
 ```
 roles
@@ -491,9 +650,7 @@ roles
         └── main.yml
 ```
 
-Each folder has a specific purpose: e.g., the `tasks` folder defines tasks to run on a server; the `files` folder has files to copy to the server; the `templates` folder lets you use Jinja templating to dynamically fill in data in files; and so on. Having this standardized structure makes it easier to navigate and understand an Ansible codebase.
-
-To create the `sample-app` role for this playbook, create a `roles/sample-app` folder in the same directory as `configure_sample_app_playbook.yml`:
+**Create the `sample-app` role:**
 
 ```
 .
@@ -508,13 +665,13 @@ To create the `sample-app` role for this playbook, create a `roles/sample-app` f
             └── main.yml
 ```
 
-Within `roles/sample-app`, you should create `files` and `tasks` subfolders, which are the only parts of the standardized role folder structure you'll need for this simple example. Copy the Node.js sample app from Chapter 1 into `files/app.js`:
+Copy the Node.js sample app:
 
 ```bash
 $ cp ../../ch1/sample-app/app.js roles/sample-app/files/
 ```
 
-Next, create `tasks/main.yml` with the code shown in Example 2-7.
+Create `tasks/main.yml`:
 
 **Example 2-7.** Sample app tasks (`ch2/ansible/roles/sample-app/tasks/main.yml`)
 
@@ -539,133 +696,245 @@ Next, create `tasks/main.yml` with the code shown in Example 2-7.
   shell: nohup node app.js &
 ```
 
-This code does the following:
+1. **Install Node.js**: Use native Ansible modules for each step
+2. **Copy app**: Use the `copy` module to transfer `app.js` to the server
+3. **Start app**: Use the `shell` module to run node in the background
 
-1. **Install Node.js**: This is the same code you used in the Bash script to install Node.js, but translated to use native Ansible modules for each step. The `yum_repository` module adds a repository to yum, and the `yum` module uses that repository to install Node.js.
+#### 2.7.4.5. Running the Configuration Playbook
 
-2. **Copy the sample app**: Use the `copy` module to copy `app.js` to the server.
-
-3. **Start the sample app**: Use the `shell` module to execute the node binary to run the app in the background.
-
-To run this playbook, authenticate to AWS and run the following command:
+Authenticate to AWS and run:
 
 ```bash
 $ ansible-playbook -v -i inventory.aws_ec2.yml configure_sample_app_playbook.yml
 ```
 
-You should see log output at the end that looks something like this:
+You should see output like:
 
 ```
 PLAY RECAP
 xxx.us-east-2.compute.amazonaws.com : ok=5 changed=4 failed=0
 ```
 
-The value on the left, `xxx.us-east-2.compute.amazonaws.com`, is a domain name you can use to access the instance. In your web brower, open `http://xxx.us-east-2.compute.amazonaws.com:8080` (note it's port 8080 this time, not 80) and you should see this:
+Open `http://xxx.us-east-2.compute.amazonaws.com:8080` in your browser (note port 8080, not 80).
+
+You should see:
 
 ```
 Hello, World!
 ```
 
-Congrats, you're now using a configuration management tool to manage your infrastructure as code!
+### 2.7.5. Exercises
 
-> **Get Your Hands Dirty**
+Try these exercises to go deeper:
+
+- What happens if you run the Ansible playbook a second time? How does this compare to the Bash script?
+- How would you change the playbook to configure multiple EC2 instances?
+
+When you're done, manually undeploy the EC2 instance.
+
+### 2.7.6. How Configuration Management Tools Stack Up
+
+#### 2.7.6.1. CRUD
+
+**Configuration management tools:** Support three of four CRUD operations.
+
+- Can **create** initial configuration
+- Can **read** current configuration to see if it matches desired state
+- Can **update** existing configuration if it doesn't match
+- **Read and update** work well for configuration within a server (if using idempotent tasks)
+- **Read and update** for servers themselves only work if you assign unique names or tags
+- Most tools do **not support delete** (you had to undeploy the EC2 instance manually)
+
+Ansible supports a `state` parameter set to `absent` to delete resources. But Ansible doesn't track dependencies, making this difficult for multi-step playbooks.
+
+Example problem: If you set `state: absent` on both security group and EC2 instance, Ansible tries to delete the security group first (order in playbook). This fails because the security group is still in use by the instance.
+
+#### 2.7.6.2. Scale
+
+**Configuration management tools:** Designed for multiple remote servers.
+
+If you deployed three EC2 instances, the same playbook would configure all three. You'll see an example in Chapter 3.
+
+#### 2.7.6.3. Deployment Strategies
+
+**Configuration management tools:** Some have built-in support.
+
+Ansible natively supports rolling deployments. You'll see an example in Chapter 3.
+
+#### 2.7.6.4. Idempotency
+
+**Configuration management tools:** Some tasks are idempotent, some are not.
+
+**Idempotent tasks:**
+
+- The `yum` task is idempotent: it installs software only if not already installed
+- Safe to rerun as many times as you want
+
+**Non-idempotent tasks:**
+
+- Arbitrary shell tasks may or may not be idempotent
+- The `shell` task to run node is not idempotent
+- After first run, subsequent runs fail because the app is already listening on port 8080
+
+You'll see a better way to run apps with Ansible that is idempotent in Chapter 3.
+
+#### 2.7.6.5. Consistency
+
+**Configuration management tools:** Enforce consistent structure.
+
+Most tools provide:
+
+- Standard documentation conventions
+- Consistent file layout (like Ansible roles)
+- Clearly named parameters
+- Built-in secrets management
+
+This makes configuration management codebases easier to navigate and maintain than ad hoc scripts.
+
+#### 2.7.6.6. Verbosity
+
+**Configuration management tools:** More concise than ad hoc scripts.
+
+The Ansible playbooks and role: ~80 lines of code. The Bash script: also ~80 lines.
+
+But the Ansible code does considerably more:
+
+- Supports most CRUD operations
+- Includes deployment strategies
+- Some idempotency
+- Scales to many servers
+- Consistent code structure
+
+An ad hoc script supporting all this would be many times longer.
+
+### 2.7.7. Drawbacks of Configuration Management Tools
+
+#### 2.7.7.1. Setup Cost
+
+Some configuration management tools have considerable setup cost:
+
+- May need to set up management servers
+- May need to install and configure agents
+
+#### 2.7.7.2. Mutable Infrastructure
+
+Most configuration management tools were designed for mutable infrastructure:
+
+- Long-running servers that tools update (mutate) over and over again
+- Servers can live for many years
+
+**The problem: Configuration drift**
+
+:::info[Configuration Drift Explained]
+
+**In plain English:** Configuration drift happens when servers that should be identical gradually become different over time due to accumulated changes.
+
+**In technical terms:** Configuration drift is the divergence between desired state and actual state that accumulates as manual changes, failed updates, and time-based variations compound on long-lived mutable infrastructure.
+
+**Why it matters:** Drift makes it hard to reason about what's deployed, difficult to reproduce issues on other servers, and challenging to debug problems.
+
+
+
+Each long-running server builds up a unique history of changes. Over time, each server becomes subtly different from the others.
+
+#### 2.7.7.3. The Shift to Immutable Infrastructure
+
+As cloud computing becomes ubiquitous, immutable infrastructure is becoming more common.
+
+:::info[Immutable Infrastructure Explained]
+
+**In plain English:** Immutable infrastructure means you never change servers after deploying them. Instead, you deploy new servers with changes already applied.
+
+**In technical terms:** Immutable infrastructure treats servers as disposable artifacts. Rather than modifying running systems, you create new instances from updated templates and replace old instances.
+
+**Why it matters:** Immutable infrastructure is inspired by functional programming, where variables never change. This makes reasoning about your code easier. The same principle applies to infrastructure.
+
+
+
+**The cattle vs. pets analogy:**
+
+- **Mutable infrastructure (pets)**: Give each server a unique name, take care of it, try to keep it alive as long as possible
+- **Immutable infrastructure (cattle)**: Servers are more or less indistinguishable, have random or sequential IDs, kill them off and replace them regularly
+
+Configuration management tools can work with immutable infrastructure patterns, but it's not what they were originally designed for. This led to new approaches in the next section.
+
+> **Insight: When to Use Configuration Management**
 >
-> Here are a few exercises you can try at home to go deeper:
->
-> - What happens if you run the Ansible playbook a second time? How does this compare to the Bash script?
-> - How would you have to change the playbook to configure multiple EC2 instances?
->
-> When you're done experimenting with Ansible, manually undeploy the EC2 instance as shown previously in Figure 1-9.
 
-### How Configuration Management Tools Stack Up
+Configuration management tools are great for managing the configuration of servers, but not for deploying the servers themselves or other infrastructure.
 
-Here is how configuration management tools stack up against the IaC category criteria:
 
-**CRUD**
-Most configuration management tools support three of the four CRUD operations. They can create the initial configuration, read the current configuration to see whether it matches the desired configuration, and if not, update the existing configuration. That said, support for read and update is a bit hit or miss. It works well for reading and updating the configuration within a server (if you use tasks that are idempotent, as you'll see shortly), but for managing the servers themselves, or any other type of cloud infrastructure, it works only if you remember to assign each piece of infrastructure a unique name or tag, which is easy to do with just a handful of resources but becomes more challenging at scale.
 
-Another challenge is that most configuration management tools do not support delete (which is why you had to undeploy the EC2 instance manually). Ansible does support a `state` parameter on most modules, which can be set to `absent` to tell that module to delete the resource it manages, but as Ansible does not track dependencies, using `state` in playbooks with steps that depend on each other can be difficult. For example, if you updated `create_ec2_instances_playbook.yml` to set `state` to `absent` on the `ec2_security_group` and `ec2_instance` modules, and ran the playbook, Ansible would try to delete the security group first and the EC2 instance second (since that's the order they appear in the playbook). This would result in an error, as the security group can't be deleted while it's in use by the EC2 instance.
+## 2.8. Server Templating Tools
 
-**Scale**
-Most configuration management tools are designed specifically for managing multiple remote servers. For example, if you had deployed three EC2 instances, the exact same playbook would configure all three to run the web server (you'll see an example of this in Chapter 3).
+### 2.8.1. What Are Server Templating Tools?
 
-**Deployment strategies**
-Some configuration management tools have built-in support for deployment strategies. For example, Ansible natively supports rolling deployments (you'll see an example of this in Chapter 3 too).
+:::info[Server Templating Explained]
 
-**Idempotency**
-Some tasks you do with configuration management tools are idempotent, and some are not. For example, the `yum` task in Ansible is idempotent: it installs the software only if it's not installed already, so it's safe to rerun that task as many times as you want. On the other hand, arbitrary shell tasks may or may not be idempotent, depending on the shell commands you execute. For example, the preceding playbook uses a `shell` task to directly execute the node binary, which is not idempotent. After the first run, subsequent runs of this playbook will fail, as the Node.js app is already running and listening on port 8080, so you'll get an error about conflicting ports. In Chapter 3, you'll see a better way of running apps with Ansible that is idempotent.
+**In plain English:** Server templating tools create a snapshot of a complete server setup (operating system, software, configuration) that you can deploy multiple times.
 
-**Consistency**
-Most configuration management tools enforce a consistent, predictable structure to the code, including documentation, file layout, clearly named parameters, and secrets management. While every developer organizes their ad hoc scripts in a different way, most configuration management tools come with a set of conventions that makes it easier to navigate and maintain the code, as you saw with the folder structure for Ansible roles.
+**In technical terms:** Server templating creates immutable images capturing the entire filesystem state of a system. These images can be deployed as virtual machines or containers using orchestration tools.
 
-**Verbosity**
-Most configuration management tools provide a DSL for specifying server configuration that is more concise than the equivalent in an ad hoc script. For example, the Ansible playbooks and role add up to about 80 lines of code, which at first may not seem any better than the Bash script (which was also roughly 80 lines), but the 80 lines of Ansible code are doing considerably more: the Ansible code supports most CRUD operations, deployment strategies, idempotency, scaling operations to many servers, and consistent code structure. An ad hoc script that supported all this would be many times the length.
+**Why it matters:** Instead of configuring servers by running the same code on each one, you create an image once and deploy that identical image everywhere. This eliminates configuration drift and ensures consistency.
 
-Configuration management tools brought several advantages over ad hoc scripts, but they also introduced their own drawbacks. One big drawback is that some configuration management tools have a considerable setup cost; for example, you may need to set up management servers and agents. A second big drawback is that most configuration management tools were designed for a mutable infrastructure paradigm, where you have long-running servers that the configuration management tools update (mutate) over and over again, for many years. This can be problematic because of configuration drift, where over time, your long-running servers can build up unique histories of changes, so each server is subtly different from the others. This can make it hard to reason about what's deployed and even harder to reproduce the issue on another server, all of which makes debugging challenging.
 
-As the cloud and virtualization become more and more ubiquitous, using an immutable infrastructure paradigm is becoming more common. In this paradigm, instead of long-running physical servers, you use short-lived virtual servers that you replace every time you do an update. This is inspired by functional programming, where variables are immutable, so after you've set a variable to a value, you can never change that variable again, and if you need to update something, you create a new variable. Because variables never change, reasoning about your code is easier.
 
-The idea behind immutable infrastructure is similar. Once you've deployed a server, you never make changes to it again. If you need to update something, such as deploying a new version of your code, you deploy a new server. Because servers never change after being deployed, reasoning about what's deployed is easier. The typical analogy used here (my apologies to vegetarians and animal lovers) is cattle versus pets: with mutable infrastructure, you treat your servers like pets, giving each a unique name, taking care of it, and trying to keep it alive as long as possible; with immutable infrastructure, you treat your servers like cattle, each more or less indistinguishable from the others, with random or sequential IDs instead of names, and you kill them off and replace them regularly.
+### 2.8.2. Two Types of Server Templating
 
-> **Insight**
->
-> Configuration management tools are great for managing the configuration of servers, but not for deploying the servers themselves or other infrastructure.
+#### 2.8.2.1. Virtual Machines
 
-While it's possible to use configuration management tools with immutable infrastructure patterns, it's not what they were originally designed for. That led to new approaches, as discussed in the next section.
+**How they work:**
 
-## Server Templating Tools
+- Emulate an entire computer system, including hardware
+- Run a hypervisor (VMware vSphere, VirtualBox, Parallels) to virtualize CPU, memory, hard drive, networking
+- Any VM image sees only virtualized hardware, not the host machine
 
-An alternative to configuration management that has been growing in popularity recently is to use server templating tools, such as virtual machines (VMs) and containers. Instead of launching a bunch of servers and configuring them by running the same code on each one, the idea behind server templating tools is to create an image of a server that captures a self-contained "snapshot" of the entire filesystem. You can then use another IaC tool to install that image on your servers.
+**Benefits:**
 
-As shown in Figure 2-1, there are two types of tools for working with images.
+- Full isolation from host and other VMs
+- Runs exactly the same way in all environments
+- Complete control over the entire stack
 
-**Virtual machines**
-These emulate an entire computer system, including the hardware. You run a hypervisor, such as VMware vSphere, VirtualBox, or Parallels (full list), to virtualize (simulate) the underlying CPU, memory, hard drive, and networking. The benefit is that any VM image that you run on top of the hypervisor can see only the virtualized hardware, so it's fully isolated from the host machine and any other VM images, and it will run exactly the same way in all environments (e.g., your computer, a staging server, a production server). The drawback is that virtualizing all this hardware and running a totally separate OS for each VM incurs a lot of overhead in terms of CPU usage, memory usage, and startup time. You can define VM images as code by using tools such as Packer, which you typically use to create images for production servers, and Vagrant, which you typically use to create images for local development.
+**Drawbacks:**
 
-**Containers**
-These emulate the user space of an OS. You run a container engine, such as Docker, Moby, or CRI-O (full list), to isolate processes, memory, mount points, and networking. The benefit is that any container you run on top of the container engine can see only its own user space, so it's isolated from the host machine and other containers, and will run exactly the same way in all environments. The drawback is that all the containers running on a single server share that server's OS kernel and hardware, so it's more difficult to achieve the level of isolation and security you get with a VM. However, because the kernel and hardware are shared, your containers can boot up in milliseconds and have virtually no CPU or memory overhead. You can define container images as code by using tools such as Docker.
+- Virtualizing hardware incurs overhead
+- Running separate OS for each VM increases resource usage
+- Longer startup times compared to containers
 
-You'll go through an example of using container images with Docker in Chapter 3. In this section, let's go through an example of using VM images with Packer. After that, you'll see how server templating tools stack up against the IaC category criteria.
+**Tools:**
 
-<ProcessFlow
-  title="IaC Tool Flow: From Code to Infrastructure"
-  steps={[
-    {
-      name: "Write Code",
-      description: "Define infrastructure in declarative or procedural code",
-      detail: "HCL, YAML, JSON, or scripting languages"
-    },
-    {
-      name: "Build Images",
-      description: "Create VM or container images with all dependencies",
-      detail: "Packer for VMs, Docker for containers"
-    },
-    {
-      name: "Provision Infrastructure",
-      description: "Deploy servers, networks, and resources",
-      detail: "OpenTofu, Terraform, CloudFormation"
-    },
-    {
-      name: "Configure Services",
-      description: "Apply configuration management to running systems",
-      detail: "Ansible, Chef, Puppet"
-    },
-    {
-      name: "Deploy Applications",
-      description: "Roll out apps with orchestration tools",
-      detail: "Kubernetes, ECS, Lambda"
-    }
-  ]}
-  colors={{
-    primary: colors.purple,
-    secondary: colors.purple,
-    text: colors.slate
-  }}
-/>
+- **Packer**: Create images for production servers
+- **Vagrant**: Create images for local development
 
-### Example: Create a VM Image by Using Packer
+#### 2.8.2.2. Containers
 
-As an example, let's take a look at using Packer to create a VM image for AWS called an AMI. First, create a folder called `packer`:
+**How they work:**
+
+- Emulate the user space of an operating system
+- Run a container engine (Docker, Moby, CRI-O) to isolate processes, memory, mount points, networking
+- Containers share the host's OS kernel and hardware
+
+**Benefits:**
+
+- Isolated from host and other containers
+- Runs exactly the same way in all environments
+- Boots in milliseconds
+- Virtually no CPU or memory overhead
+
+**Drawbacks:**
+
+- All containers on a server share that server's OS kernel and hardware
+- More difficult to achieve the same level of isolation and security as VMs
+
+**Tools:**
+
+- **Docker**: Define container images as code
+- **Moby**: Open-source Docker alternative
+- **CRI-O**: Lightweight container runtime
+
+### 2.8.3. Example: Create a VM Image by Using Packer
+
+Create a folder for Packer examples:
 
 ```bash
 $ cd fundamentals-of-devops
@@ -673,13 +942,13 @@ $ mkdir -p ch2/packer
 $ cd ch2/packer
 ```
 
-Next, copy the Node.js sample app from Chapter 1 into the packer folder:
+Copy the Node.js sample app:
 
 ```bash
 $ cp ../../ch1/sample-app/app.js .
 ```
 
-Create a Packer template called `sample-app.pkr.hcl`, with the contents shown in Example 2-8.
+Create a Packer template called `sample-app.pkr.hcl`:
 
 **Example 2-8.** Packer template (`ch2/packer/sample-app.pkr.hcl`)
 
@@ -726,19 +995,21 @@ build {  # 3
 }
 ```
 
-You create Packer templates by using the HashiCorp Configuration Language (HCL) in files with a `.hcl` extension. The preceding template does the following:
+**What this template does:**
 
-1. **Look up the ID of the Amazon Linux AMI**: Use the `amazon-ami` data source to do the same lookup you saw in the Bash script and Ansible playbook.
+1. **AMI lookup**: Find the latest Amazon Linux AMI
+2. **Source images**: Packer starts an EC2 instance running this AMI
+3. **Build steps**: Packer connects via SSH and runs build steps in order
+4. **File provisioner**: Copy `app.js` to the server
+5. **Shell provisioner**: Run `install-node.sh` to install Node.js
 
-2. **Source images**: Packer will start a server running each source image you specify. This code will result in Packer starting an EC2 instance running the Amazon Linux AMI from 1.
+When build steps finish, Packer:
 
-3. **Build steps**: Packer then connects to the server (e.g., via SSH) and runs the build steps in the order you specified. When all the build steps have finished, Packer will take a snapshot of the server and shut down the server. This snapshot will be a new AMI that you can deploy, and its name will be set based on the name parameter in the source block from 2, which the preceding code sets to `sample-app-packer-<UUID>`, where UUID is a randomly generated value that ensures you get a unique AMI name every time you run `packer build`. This code runs two build steps, as described in 4 and 5.
+- Takes a snapshot of the server (creates a new AMI)
+- Shuts down the server
+- Names the AMI `sample-app-packer-<UUID>` where UUID ensures uniqueness
 
-4. **File provisioner**: The first build step runs a file provisioner to copy files to the server. This code uses this to copy the Node.js sample app code in `app.js` to the server.
-
-5. **Shell provisioner**: The second build step runs a shell provisioner to execute shell scripts on the server. The code uses this to run the `install-node.sh` script, which is described next.
-
-Create a file called `install-node.sh` with the contents shown in Example 2-9.
+Create `install-node.sh`:
 
 **Example 2-9.** Bash script to install Node.js (`ch2/packer/install-node.sh`)
 
@@ -755,16 +1026,21 @@ EOF
 sudo yum install -y nodejs
 ```
 
-This script is identical to the first part of the Bash script, using yum to install Node.js. More generally, the Packer template is nearly identical to the Bash script and Ansible playbook, except the result of executing Packer is not a server running your app, but the image of a server with your app and all its dependencies installed. The idea is to use other IaC tools to launch one or more servers running that image; you'll see an example of this in "Provisioning Tools".
+### 2.8.4. Building the AMI
 
-To build the AMI, install Packer (minimum version 1.10), authenticate to AWS, and run the following commands:
+Install Packer (minimum version 1.10), authenticate to AWS, and run:
 
 ```bash
 $ packer init sample-app.pkr.hcl
 $ packer build sample-app.pkr.hcl
 ```
 
-The first command, `packer init`, installs any plugins used in this Packer template. Packer can create images for many cloud providers (e.g., AWS, Google Cloud, and Azure) and the code for each of these providers lives in separate plugins that you install via the init command. The second command, `packer build`, kicks off the build process. When the build is done, which typically takes 3–5 minutes, you should see some log output that looks like this:
+**What these commands do:**
+
+- `packer init`: Installs plugins for cloud providers (AWS, Google Cloud, Azure)
+- `packer build`: Kicks off the build process (typically takes 3-5 minutes)
+
+When the build completes, you should see:
 
 ```
 ==> Builds finished. The artifacts of successful builds are:
@@ -772,56 +1048,150 @@ The first command, `packer init`, installs any plugins used in this Packer templ
 us-east-2: ami-0ee5157dd67ca79fc
 ```
 
-Congrats, you're now using a server templating tool to manage your server configuration as code! The `ami-xxx` value is the ID of the AMI that was created from this template. You'll see how to deploy this AMI in "Provisioning Tools".
+The `ami-xxx` value is the ID of your new AMI. You'll deploy this AMI in the next section.
 
-> **Get Your Hands Dirty**
+### 2.8.5. Exercises
+
+Try these exercises to go deeper:
+
+- What happens if you run `packer build` on this template a second time? Why?
+- How can you update the template to build images for other clouds (Azure, Google Cloud) or your own computer (VirtualBox, Docker)?
+
+### 2.8.6. How Server Templating Tools Stack Up
+
+#### 2.8.6.1. CRUD
+
+**Server templating tools:** Only need to support **create**.
+
+This is because server templating is a key component of immutable infrastructure:
+
+- To roll out a change, you create a new image and deploy it on a new server
+- You never update or delete existing images
+- Always creating totally new images
+
+Server templating tools don't work in isolation. You need another tool (like a provisioning tool) to deploy these images. That tool should support all CRUD operations.
+
+#### 2.8.6.2. Scale
+
+**Server templating tools:** Highly scalable.
+
+- Create an image once
+- Roll that same image out to 1 server or 1,000 servers
+
+#### 2.8.6.3. Deployment Strategies
+
+**Server templating tools:** Only create images.
+
+- Use other tools to roll out the images
+- Use whatever deployment strategies those tools support
+
+#### 2.8.6.4. Idempotency
+
+**Server templating tools:** Idempotent by design.
+
+- Create a new image every time
+- Execute the exact same steps every time
+- If you hit an error, just rerun and try again
+
+#### 2.8.6.5. Consistency
+
+**Server templating tools:** Enforce consistent structure.
+
+Most tools provide:
+
+- Standard documentation conventions
+- Consistent file layout
+- Clearly named parameters
+
+#### 2.8.6.6. Verbosity
+
+**Server templating tools:** Typically concise.
+
+- Provide custom DSLs for defining images
+- Don't deal with most CRUD operations
+- Idempotent "for free"
+- Result: Small amount of code
+
+> **Insight: When to Use Server Templating**
 >
-> Here are a few exercises you can try at home to go deeper:
->
-> - What happens if you run `packer build` on this template a second time? Why?
-> - Figure out how to update the Packer template so it builds images not only for AWS, but also images you can run on other clouds (e.g., Azure or Google Cloud) or on your own computer (e.g., VirtualBox or Docker).
 
-### How Server Templating Tools Stack Up
+Server templating tools are great for managing the configuration of servers with immutable infrastructure practices.
 
-How do server templating tools stack up against the IaC category criteria?
 
-**CRUD**
-Server templating needs to support only the create operation in CRUD. This is because server templating is a key component of the shift to immutable infrastructure. If you need to roll out a change, instead of updating an existing server, you use your server templating tool to create a new image, and deploy that image on a new server. So, with server templating, you're always creating totally new images; there's never a reason to read, update, or delete. That said, server templating tools aren't used in isolation; you need another tool to deploy these images (e.g., a provisioning tool, as you'll see shortly), and you typically want that tool to support all CRUD operations.
 
-**Scale**
-Server templating tools are highly scalable, as you can create an image once and then roll that same image out to 1 server or 1,000 servers, as necessary.
+Server templating tools are powerful but don't work by themselves. You need another tool to deploy and manage the images you create, such as provisioning tools in the next section.
 
-**Deployment strategies**
-Server templating tools only create images; you use other tools and whatever deployment strategies those tools support to roll out the new images.
+<ProcessFlow
+  title="IaC Tool Flow: From Code to Infrastructure"
+  steps={[
+    {
+      name: "Write Code",
+      description: "Define infrastructure in declarative or procedural code",
+      detail: "HCL, YAML, JSON, or scripting languages"
+    },
+    {
+      name: "Build Images",
+      description: "Create VM or container images with all dependencies",
+      detail: "Packer for VMs, Docker for containers"
+    },
+    {
+      name: "Provision Infrastructure",
+      description: "Deploy servers, networks, and resources",
+      detail: "OpenTofu, Terraform, CloudFormation"
+    },
+    {
+      name: "Configure Services",
+      description: "Apply configuration management to running systems",
+      detail: "Ansible, Chef, Puppet"
+    },
+    {
+      name: "Deploy Applications",
+      description: "Roll out apps with orchestration tools",
+      detail: "Kubernetes, ECS, Lambda"
+    }
+  ]}
+  colors={{
+    primary: colors.purple,
+    secondary: colors.purple,
+    text: colors.slate
+  }}
+/>
 
-**Idempotency**
-Server templating tools are idempotent by design. Since you create a new image every time, the tool executes the exact same steps every time. If you hit an error part of the way through, just rerun and try again.
+## 2.9. Provisioning Tools
 
-**Consistency**
-Most server templating tools enforce a consistent, predictable structure to the code, including documentation, file layout, and clearly named parameters.
+### 2.9.1. What Are Provisioning Tools?
 
-**Verbosity**
-Since server templating tools usually provide concise DSLs, don't have to deal with most CRUD operations, and are idempotent "for free," the amount of code you need is typically pretty small.
+:::info[Provisioning Tools Explained]
 
-> **Insight**
->
-> Server templating tools are great for managing the configuration of servers with immutable infrastructure practices.
+**In plain English:** Provisioning tools are programs that create servers, databases, load balancers, and networks in the cloud by making API calls based on code you write.
 
-As I mentioned a few times, server templating tools are powerful, but they don't work by themselves. You need another tool to deploy and manage the images you create, such as provisioning tools, which are the focus of the next section.
+**In technical terms:** Provisioning tools translate declarative infrastructure definitions into provider API calls, managing the complete lifecycle of cloud resources with state tracking and dependency resolution.
 
-## Provisioning Tools
+**Why it matters:** Provisioning tools let you define your entire infrastructure in code files, then automatically create, update, or destroy that infrastructure with a single command.
 
-Whereas configuration management and server templating define the code that runs on each server, provisioning tools such as OpenTofu/Terraform, CloudFormation, and Pulumi (full list) are responsible for creating the servers themselves. In fact, you can use provisioning tools to create not only servers but also databases, caches, load balancers, queues, and many other aspects of your infrastructure.
 
-Under the hood, most provisioning tools work by translating the code you write into API calls to the cloud provider you're using. For example, say you write OpenTofu code to create a server in AWS (which you will do next in this section). When you run OpenTofu, it will parse your code, and based on the configuration you specify, make API calls to AWS to create an EC2 instance, security group, etc.
 
-Therefore, unlike with configuration management tools, you don't have to do any extra work to set up management servers or connectivity. All this is handled using the APIs and authentication mechanisms already provided by the cloud you're using. You'll get to try this out in the following sections, which walk through examples of using OpenTofu to deploy infrastructure, update infrastructure, package infrastructure into your own modules, and reuse infrastructure from third-party modules. After that, you'll see how provisioning tools stack up against the IaC category criteria.
+### 2.9.2. How Provisioning Tools Work
 
-### Example: Deploy an EC2 Instance by Using OpenTofu
+Most provisioning tools translate your code into API calls to cloud providers.
 
-As an example of using a provisioning tool, let's create an OpenTofu module that can deploy an EC2 instance. You write OpenTofu modules in HCL (the same language you used with Packer), in configuration files with a `.tf` extension. OpenTofu will find all files with that extension in a folder, so you can name the files whatever you want, but it's usually a good idea to follow the standard naming conventions, including putting the main resources in `main.tf`, input variables in `variables.tf`, and output variables in `outputs.tf`.
+**Example workflow:**
 
-First, create a new `tofu/ec2-instance` folder for the module:
+1. You write OpenTofu code to create a server in AWS
+2. You run OpenTofu
+3. OpenTofu parses your code
+4. Based on your configuration, OpenTofu makes API calls to AWS
+5. AWS creates an EC2 instance, security group, etc.
+
+**Benefits:**
+
+- No extra setup for management servers or connectivity
+- Use APIs and authentication mechanisms already provided by your cloud
+- No chicken-and-egg problem like configuration management tools
+
+### 2.9.3. Example: Deploy an EC2 Instance by Using OpenTofu
+
+Create a new folder for the OpenTofu module:
 
 ```bash
 $ cd fundamentals-of-devops
@@ -829,7 +1199,17 @@ $ mkdir -p ch2/tofu/ec2-instance
 $ cd ch2/tofu/ec2-instance
 ```
 
-Within the `tofu/ec2-instance` folder, create a file called `main.tf`, with the contents shown in Example 2-10.
+#### 2.9.3.1. Standard Naming Conventions
+
+OpenTofu finds all files with `.tf` extension in a folder. You can name files whatever you want, but follow these standard conventions:
+
+- `main.tf`: Main resources
+- `variables.tf`: Input variables
+- `outputs.tf`: Output variables
+
+#### 2.9.3.2. Main Resources
+
+Create `main.tf`:
 
 **Example 2-10.** OpenTofu module (`ch2/tofu/ec2-instance/main.tf`)
 
@@ -873,27 +1253,30 @@ resource "aws_instance" "sample_app" {  # 5
 }
 ```
 
-The code in `main.tf` does something similar to the Bash script and Ansible playbook from earlier in the chapter:
+**What this code does:**
 
-1. **Configure the AWS provider**: OpenTofu works with many providers, such as AWS, Google Cloud, and Azure. This code configures the AWS provider to use the `us-east-2` (Ohio) region.
+1. **Configure provider**: OpenTofu works with many providers (AWS, Google Cloud, Azure). This configures the AWS provider for the `us-east-2` region.
 
-2. **Create a security group**: For each type of provider, there are many kinds of resources that you can create, such as servers, databases, and load balancers. The general syntax for creating a resource in OpenTofu is as follows:
-
+2. **Create security group**: The general syntax for resources is:
    ```hcl
    resource "<PROVIDER>_<TYPE>" "<NAME>" {
      [CONFIG ...]
    }
    ```
+   - `PROVIDER`: Name of provider (e.g., `aws`)
+   - `TYPE`: Type of resource to create (e.g., `security_group`)
+   - `NAME`: Identifier to refer to this resource (e.g., `sample_app`)
+   - `CONFIG`: Arguments specific to the resource
 
-   where `PROVIDER` is the name of a provider (e.g., `aws`), `TYPE` is the type of resource to create in that provider (e.g., `security_group`), `NAME` is an identifier you can use throughout the OpenTofu code to refer to this resource (e.g., `sample_app`), and `CONFIG` consists of one or more arguments specific to that resource. This code uses an `aws_security_group` resource to create a security group. It sets the name of the security group to `var.name`, which will be the value of the `name` input variable, as you'll see in Example 2-12.
+3. **Allow HTTP requests**: Add a rule to allow inbound HTTP on port 8080
 
-3. **Allow HTTP requests**: Use the `aws_security_group_rule` resource to add a rule to the security group from 2 that allows inbound HTTP requests on port 8080.
+4. **Look up AMI**: Find the AMI you built with Packer (named `sample-app-packer-<UUID>`)
 
-4. **Look up the ID of the AMI you built with Packer**: Earlier, you saw how to look up AMI IDs in Bash, Ansible, and Packer. Here, you're seeing the OpenTofu version of an AMI lookup, but this time, instead of looking for a plain Amazon Linux AMI, the code is looking for the AMI you built with Packer earlier in this chapter, which was named `sample-app-packer-<UUID>`.
+5. **Deploy EC2 instance**: Create an EC2 instance using the AMI from step 4, security group from step 2, user data script, and Name tag set to `var.name`
 
-5. **Deploy an EC2 instance**: Use the `aws_instance` resource to create an EC2 instance that uses the AMI from 4, security group from 2, the user data script from `user-data.sh`, which you'll see in Example 2-11, and sets the Name tag to `var.name`.
+#### 2.9.3.3. User Data Script
 
-Create a file called `user-data.sh` with the contents shown in Example 2-11.
+Create `user-data.sh`:
 
 **Example 2-11.** User data script (`ch2/tofu/ec2-instance/user-data.sh`)
 
@@ -902,9 +1285,13 @@ Create a file called `user-data.sh` with the contents shown in Example 2-11.
 nohup node /home/ec2-user/app.js &
 ```
 
-Note that this user data script is a fraction of the size of the one you saw in the Bash code. That's because all the dependencies (Node.js) and code (`app.js`) are already installed in the AMI by Packer. So the only thing this user data script does is start the sample app. This is a more idiomatic way to use user data.
+Note how small this is compared to Chapter 1's user data script. All dependencies (Node.js) and code (`app.js`) are already installed in the AMI by Packer. This script only starts the sample app.
 
-Next, create a file called `variables.tf` to define input variables, which are like the input parameters of a function, as shown in Example 2-12.
+This is a more idiomatic way to use user data.
+
+#### 2.9.3.4. Input Variables
+
+Create `variables.tf`:
 
 **Example 2-12.** Input variables (`ch2/tofu/ec2-instance/variables.tf`)
 
@@ -915,7 +1302,19 @@ variable "name" {
 }
 ```
 
-This code defines an input variable called `name`, which allows you to specify the name to use for the EC2 instance, security group, and other resources. You'll see how to set variables shortly. Finally, create a file called `outputs.tf` with the contents shown in Example 2-13.
+:::info[Input Variables Explained]
+
+**In plain English:** Input variables are like function parameters. They let you pass values into your infrastructure code.
+
+**In technical terms:** Input variables are typed parameters with optional defaults and validation rules that allow parameterization of infrastructure modules for reuse across environments.
+
+**Why it matters:** Variables make your infrastructure code reusable. The same module can deploy to dev, staging, or production just by passing different variable values.
+
+
+
+#### 2.9.3.5. Output Variables
+
+Create `outputs.tf`:
 
 **Example 2-13.** Output variables (`ch2/tofu/ec2-instance/outputs.tf`)
 
@@ -936,21 +1335,35 @@ output "public_ip" {
 }
 ```
 
-This code defines output variables, which are like the return values of a function. These output variables will be printed to the log and can be shared with other modules. The code defines output variables for the EC2 instance ID, security group ID, and EC2 instance public IP.
+:::info[Output Variables Explained]
 
-Try this code by installing OpenTofu (minimum version 1.9), authenticating to AWS, and running the following command:
+**In plain English:** Output variables are like function return values. They let you see important information after deployment.
+
+**In technical terms:** Output variables expose resource attributes from modules, making values available to users in logs and to other modules through module output references.
+
+**Why it matters:** Outputs let you extract useful information (like IP addresses) and share data between modules.
+
+
+
+### 2.9.4. Running OpenTofu
+
+Install OpenTofu (minimum version 1.9), authenticate to AWS, and run:
 
 ```bash
 $ tofu init
 ```
 
-Similar to Packer, OpenTofu works with many providers, and the code for each one lives in separate binaries that you install via the init command. Once init has completed, run the apply command to start the deployment process:
+Similar to Packer, OpenTofu works with many providers. Code for each provider lives in separate binaries installed via the init command.
+
+Once init completes, run apply:
 
 ```bash
 $ tofu apply
 ```
 
-The first thing the apply command will do is prompt you for the `name` input variable:
+#### 2.9.4.1. Setting Input Variables
+
+The apply command prompts you for the `name` input variable:
 
 ```
 var.name
@@ -959,20 +1372,22 @@ var.name
   Enter a value:
 ```
 
-You can type in a name like `sample-app-tofu` and hit Enter. Alternatively, if you don't want to be prompted interactively, you can instead use the `-var` flag:
+**Four ways to set variables:**
 
+**1. Interactive prompt:** Type a value and hit Enter
+
+**2. Command-line flag:**
 ```bash
 $ tofu apply -var name=sample-app-tofu
 ```
 
-You can also set any input variable `foo` by using the environment variable `TF_VAR_foo`:
-
+**3. Environment variable:** Set `TF_VAR_<name>`
 ```bash
 $ export TF_VAR_name=sample-app-tofu
 $ tofu apply
 ```
 
-One more option is to define a default value, as shown in Example 2-14.
+**4. Default value:** Add a default in `variables.tf`
 
 **Example 2-14.** Define a default (`ch2/tofu/ec2-instance/variables.tf`)
 
@@ -984,7 +1399,9 @@ variable "name" {
 }
 ```
 
-Once all input variables have been set, the apply command will show you the execution plan (just plan for short), which will look something like this (truncated for readability):
+#### 2.9.4.2. Execution Plan
+
+Once all input variables are set, apply shows the execution plan:
 
 ```
 OpenTofu will perform the following actions:
@@ -1015,9 +1432,30 @@ OpenTofu will perform the following actions:
 Plan: 3 to add, 0 to change, 0 to destroy.
 ```
 
-The plan lets you see what OpenTofu will do before actually making any changes, and prompts you for confirmation before continuing. This is a great way to sanity-check your code before unleashing it onto the world. The plan output is similar to the output of the diff command that is part of Unix, Linux, and git: anything with a plus sign (+) will be created, anything with a minus sign (–) will be deleted, anything with both a plus and a minus sign will be replaced, and anything with a tilde sign (~) will be modified in place. Every time you run apply, OpenTofu will show you this execution plan; you can also generate the execution plan without applying any changes by running `tofu plan` instead of `tofu apply`.
+:::info[Execution Plan Explained]
 
-In the preceding plan output, you can see that OpenTofu is planning on creating an EC2 instance, security group, and security group rule, which is exactly what you want. Type `yes` and hit Enter to let OpenTofu proceed. When apply completes, you should see log output that looks like this:
+**In plain English:** The execution plan shows you exactly what OpenTofu will create, change, or delete before it actually does anything.
+
+**In technical terms:** The plan is a computed diff between desired state (in your code) and actual state (tracked in the state file), showing all resource changes with their attributes.
+
+**Why it matters:** Plans let you sanity-check your code before unleashing it on the world. This is a critical safety mechanism for infrastructure changes.
+
+
+
+**Plan symbols:**
+
+- `+` (plus): Will be created
+- `-` (minus): Will be deleted
+- `~` (tilde): Will be modified in place
+- `+/-` (plus and minus): Will be replaced
+
+You can also generate a plan without applying changes:
+
+```bash
+$ tofu plan
+```
+
+Type `yes` and hit Enter to proceed. When apply completes:
 
 ```
 Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
@@ -1029,17 +1467,21 @@ public_ip = "3.138.110.216"
 security_group_id = "sg-087227914c9b3aa1e"
 ```
 
-It's the three output variables, including the public IP address in `public_ip`. Wait a minute or two for the EC2 instance to boot up, open `http://<public_ip>:8080`, and you should see this:
+Wait 1-2 minutes for the EC2 instance to boot. Open `http://<public_ip>:8080` in your browser.
+
+You should see:
 
 ```
 Hello, World!
 ```
 
-Congrats, you're using a provisioning tool to manage your infrastructure as code!
+### 2.9.5. Example: Update and Destroy Infrastructure by Using OpenTofu
 
-### Example: Update and Destroy Infrastructure by Using OpenTofu
+One big advantage of provisioning tools: they support not just deploying infrastructure, but also updating and destroying it.
 
-One of the big advantages of provisioning tools is that they support not just deploying infrastructure, but also updating and destroying it. For example, now that you've deployed an EC2 instance via OpenTofu, make a change to the configuration, such as adding a new `Test` tag with the value `update`, as shown in Example 2-15.
+#### 2.9.5.1. Updating Infrastructure
+
+Add a new tag to the EC2 instance:
 
 **Example 2-15.** Update the tags on the EC2 instance (`ch2/tofu/ec2-instance/main.tf`)
 
@@ -1054,7 +1496,7 @@ resource "aws_instance" "sample_app" {
 }
 ```
 
-Run the apply command again, and you should see output that looks like this:
+Run apply again:
 
 ```bash
 $ tofu apply
@@ -1080,11 +1522,34 @@ OpenTofu will perform the following actions:
 Plan: 0 to add, 1 to change, 0 to destroy.
 ```
 
-Every time you run OpenTofu, it records information about the infrastructure it created in an OpenTofu state file. OpenTofu manages state by using backends; if you don't specify a backend, the default is to use the local backend, which stores state locally in a `terraform.tfstate` file in the same folder as the OpenTofu module (you'll see how to use other backends in Chapter 5). This file contains a custom JSON format that records a mapping from the OpenTofu resources in your configuration files to the representation of those resources in the real world.
+#### 2.9.5.2. State Management
 
-When you run apply the first time on the `ec2-instance` module, OpenTofu records in the state file the IDs of the EC2 instance, security group, security group rules, and any other resources it created. When you run apply again, you can see **Refreshing state** in the log output, which is OpenTofu updating itself on the latest status of the world. As a result, the plan output that you see is the diff between what's currently deployed in the real world and what's in your OpenTofu code. The preceding diff shows that OpenTofu wants to create a single tag called `Test`, which is exactly what you want, so type `yes` and hit Enter, and you'll see OpenTofu perform an update operation, updating the EC2 instance with your new tag.
+:::info[State Files Explained]
 
-When you're done testing, you can run `tofu destroy` to have OpenTofu undeploy everything it deployed earlier:
+**In plain English:** The state file is where OpenTofu remembers what infrastructure it created. It's like OpenTofu's memory.
+
+**In technical terms:** The state file is a JSON-formatted mapping between OpenTofu resources in configuration files and real-world infrastructure, including resource IDs, attributes, and dependency metadata.
+
+**Why it matters:** State tracking enables OpenTofu to compute accurate diffs between desired and actual infrastructure, perform updates instead of only creates, and properly handle resource dependencies during operations.
+
+
+
+Every time you run OpenTofu, it records information about created infrastructure in a state file.
+
+**Default backend:** Local backend stores state in a `terraform.tfstate` file in the same folder. You'll see other backends in Chapter 5.
+
+**How state enables updates:**
+
+1. First `apply`: OpenTofu records IDs of created resources in state file
+2. Second `apply`: You see "Refreshing state" in logs—OpenTofu checking latest status
+3. Plan output: Shows diff between what's currently deployed and what's in your code
+4. Update operation: OpenTofu changes only what needs to change
+
+The preceding diff shows OpenTofu wants to create a single tag called `Test`. Type `yes` and hit Enter to perform the update.
+
+#### 2.9.5.3. Destroying Infrastructure
+
+When you're done testing, run `tofu destroy` to undeploy everything:
 
 ```bash
 $ tofu destroy
@@ -1116,48 +1581,76 @@ OpenTofu will perform the following actions:
 Plan: 0 to add, 0 to change, 3 to destroy.
 ```
 
-When you run destroy, OpenTofu shows you a destroy plan, which tells you about all the resources it's about to delete. This gives you one last chance to check that you really want to delete this stuff before you actually do it. It goes without saying that you should rarely, if ever, run destroy in a production environment—there's no "undo" for the destroy command. If everything looks good, type `yes` and hit Enter, and in a minute or two, OpenTofu will clean up everything it deployed.
+:::warning[Destroy is Dangerous]
 
-> **Get Your Hands Dirty**
->
-> Here are a few exercises you can try at home to go deeper:
->
-> - How do you deploy multiple EC2 instances with OpenTofu?
-> - What happens if you terminate an instance and rerun apply?
+The destroy plan shows all resources about to be deleted. This is your last chance to check before actually deleting.
 
-### Example: Deploy an EC2 Instance by Using an OpenTofu Module
+There's no "undo" for the destroy command. Rarely, if ever, run destroy in production.
 
-One of OpenTofu's more powerful features is that the modules are reusable. In a general-purpose programming language (e.g., JavaScript, Python, Java), you put reusable code in a function; in OpenTofu, you put reusable code in a module. You can then use that module multiple times to spin up many copies of the same infrastructure, without having to copy and paste the code.
 
-So far, you've been using the `ec2-instance` module as a root module, which is any module on which you run apply directly. However, you can also use it as a reusable module, which is a module meant to be included in other modules (e.g., in other root modules) as a means of code reuse.
 
-Let's give it a shot. First, create a folder called `modules` to store your reusable modules:
+If everything looks good, type `yes` and hit Enter. In 1-2 minutes, OpenTofu cleans up everything it deployed.
+
+### 2.9.6. Exercises
+
+Try these exercises to go deeper:
+
+- How do you deploy multiple EC2 instances with OpenTofu?
+- What happens if you terminate an instance and rerun apply?
+
+### 2.9.7. Example: Deploy an EC2 Instance by Using an OpenTofu Module
+
+One of OpenTofu's most powerful features: modules are reusable.
+
+:::info[Modules Explained]
+
+**In plain English:** A module is reusable infrastructure code packaged together, like a function in a programming language.
+
+**In technical terms:** A module is a container for multiple resources that are used together, with defined inputs (variables) and outputs, enabling encapsulation and code reuse.
+
+**Why it matters:** Modules let you spin up many copies of the same infrastructure without copying and pasting code. You write it once, then reuse it everywhere.
+
+
+
+#### 2.9.7.1. Root vs Reusable Modules
+
+**Root module:** Any module on which you run apply directly
+
+**Reusable module:** A module meant to be included in other modules for code reuse
+
+So far, you've been using `ec2-instance` as a root module. Now let's use it as a reusable module.
+
+#### 2.9.7.2. Organizing Modules
+
+Create a folder for reusable modules:
 
 ```bash
 $ cd fundamentals-of-devops
 $ mkdir -p ch2/tofu/modules
 ```
 
-Next, move the `ec2-instance` module into the `modules` folder:
+Move the `ec2-instance` module into the `modules` folder:
 
 ```bash
 $ mv ch2/tofu/ec2-instance ch2/tofu/modules/ec2-instance
 ```
 
-Create a folder called `live` to store your root modules:
+Create a folder for root modules:
 
 ```bash
 $ mkdir -p ch2/tofu/live
 ```
 
-Inside the `live` folder, create a new folder called `sample-app`, which will house the new root module you'll use to deploy the sample app:
+Create a new root module for the sample app:
 
 ```bash
 $ mkdir -p ch2/tofu/live/sample-app
 $ cd ch2/tofu/live/sample-app
 ```
 
-In the `live/sample-app` folder, create `main.tf` with the contents shown in Example 2-16.
+#### 2.9.7.3. Basic Module Usage
+
+Create `main.tf`:
 
 **Example 2-16.** Basic module usage (`ch2/tofu/live/sample-app/main.tf`)
 
@@ -1169,13 +1662,17 @@ module "sample_app_1" {
 }
 ```
 
-To use one module from another, all you need is the following:
+**To use one module from another, you need:**
 
-- A `module` block.
-- A `source` parameter that contains the filepath of the module you want to use. The preceding code sets `source` to the relative filepath of the `ec2-instance` module in the `modules` folder.
-- If the module defines input variables, you can set those as parameters within the module block. The `ec2-instance` module defines an input variable called `name`, which the preceding code sets to `sample-app-tofu-1`.
+- A `module` block
+- A `source` parameter with the filepath of the module to use
+- Values for any input variables the module defines
 
-If you were to run apply on this code, it would use the `ec2-instance` module code to create a single EC2 instance. But the beauty of code reuse is that you can use the module multiple times, as shown in Example 2-17.
+If you ran apply on this code, it would use the `ec2-instance` module to create a single EC2 instance.
+
+#### 2.9.7.4. Using a Module Multiple Times
+
+The beauty of code reuse: use the module multiple times.
 
 **Example 2-17.** Using a module multiple times (`ch2/tofu/live/sample-app/main.tf`)
 
@@ -1193,9 +1690,18 @@ module "sample_app_2" {
 }
 ```
 
-This code has two module blocks, so if you run apply on it, it will create two EC2 instances, one with all the resources named `sample-app-tofu-1` and one with all the resources named `sample-app-tofu-2`. If you had three module blocks, it would create three EC2 instances; and so on. And, of course, you can mix and match different modules, include modules in other modules, and so on. It's not unusual for modules to be reused dozens or hundreds of times across a company, so that you put in the work once to create a module that meets your company's needs, and then use it over and over again.
+This code has two module blocks, so running apply creates two EC2 instances:
 
-Before running apply, you have two small changes to make. First, move the provider block from the `ec2-instance` (reusable) module to the `sample-app` (root) module, as shown in Example 2-18.
+- One with all resources named `sample-app-tofu-1`
+- One with all resources named `sample-app-tofu-2`
+
+Three module blocks would create three instances, and so on.
+
+You can mix and match different modules, include modules in other modules, etc. It's common for modules to be reused dozens or hundreds of times across a company.
+
+#### 2.9.7.5. Provider Configuration
+
+Move the provider block from the `ec2-instance` (reusable) module to the `sample-app` (root) module:
 
 **Example 2-18.** Move the provider block (`ch2/tofu/live/sample-app/main.tf`)
 
@@ -1217,7 +1723,11 @@ module "sample_app_2" {
 }
 ```
 
-Reusable modules typically don't define provider blocks, and instead inherit those provider configurations from the root module, which allows users to configure provides however they prefer (e.g., use different regions, accounts, and so on). Second, create an `outputs.tf` file in the `sample-app` folder with the contents shown in Example 2-19.
+Reusable modules typically don't define provider blocks. They inherit provider configurations from the root module. This lets users configure providers however they prefer (different regions, accounts, etc.).
+
+#### 2.9.7.6. Output Variables
+
+Create `outputs.tf` in the `sample-app` folder:
 
 **Example 2-19.** Proxy output variables (`ch2/tofu/live/sample-app/outputs.tf`)
 
@@ -1243,18 +1753,36 @@ output "sample_app_2_instance_id" {
 }
 ```
 
-The preceding code "proxies" the output variables from the underlying `ec2-instance` module so that you can see those outputs when you run apply on the `sample-app` root module. OK, you're finally ready to run this code:
+This code "proxies" output variables from the underlying `ec2-instance` module so you can see those outputs when you run apply on the `sample-app` root module.
+
+#### 2.9.7.7. Running the Multi-Instance Module
+
+Run this code:
 
 ```bash
 $ tofu init
 $ tofu apply
 ```
 
-When apply completes, you should have two EC2 instances running, and the output variables should show their IPs and instance IDs. If you wait a minute or two for the instances to boot up, and open `http://<IP>:8080` in your browser, where `<IP>` is the public IP of either instance, you should see the familiar "Hello, World!" text. When you're done experimenting, run `tofu destroy` to clean everything up again.
+When apply completes, you should have two EC2 instances running. Output variables show their IPs and instance IDs.
 
-### Example: Deploy an EC2 Instance by Using an OpenTofu Registry Module
+Wait 1-2 minutes for instances to boot. Open `http://<IP>:8080` in your browser, where `<IP>` is the public IP of either instance.
 
-There's one more trick with OpenTofu modules: the `source` parameter can be set to not only a local filepath, but also to a URL. For example, the book's sample code repo in GitHub includes an `ec2-instance` module that is more or less identical to your own `ec2-instance` module. You can use the module directly from the book's GitHub repo by setting the source parameters to a GitHub URL, as shown in Example 2-20.
+You should see:
+
+```
+Hello, World!
+```
+
+When you're done, run `tofu destroy` to clean everything up.
+
+### 2.9.8. Example: Deploy an EC2 Instance by Using an OpenTofu Registry Module
+
+One more trick: the `source` parameter can be set to not only a local filepath, but also to a URL.
+
+#### 2.9.8.1. GitHub URLs
+
+The book's sample code repo includes an `ec2-instance` module identical to yours. You can use it directly from GitHub:
 
 **Example 2-20.** Set source to a GitHub URL (`ch2/tofu/live/sample-app/main.tf`)
 
@@ -1266,15 +1794,37 @@ module "sample_app_1" {
 }
 ```
 
-This code sets the source to a GitHub URL. Take note of two details:
+**Note two details:**
 
-**Double slashes**
-The source URL intentionally includes double slashes (`//`): the part to the left of the two slashes specifies the GitHub repo, and the part to the right specifies the subfolder within that repo.
+**Double slashes (`//`):**
 
-**ref parameter**
-The `ref` parameter at the end of the URL specifies a Git reference (e.g., a Git tag) within the repo. This allows you to specify the version of the module to use.
+- Part to the left: GitHub repo
+- Part to the right: Subfolder within that repo
 
-OpenTofu supports not only GitHub URLs for module sources, but also GitLab URLs, Bitbucket URLs, and so on. One particularly convenient option is to publish your modules to a module registry, which is a centralized way to share, find, and use modules. OpenTofu and Terraform each provide a public registry you can use for open source modules; you can also run private registries within your company. I've published all the reusable modules in this book to the OpenTofu and Terraform public registries. These registries have specific requirements on how the repo must be named and its folder structure, so to publish these reusable modules, I had to copy them to another repo called `https://github.com/brikis98/terraform-book-devops`, into the folder structure `modules/<MODULE_NAME>`, which allows you to consume the modules by using registry URLs of the form `brikis98/devops/book//modules/<MODULE>`. For example, instead of the GitHub URL in Example 2-20, you can use the more convenient source URL shown in Example 2-21.
+**ref parameter:**
+
+- Specifies a Git reference (e.g., Git tag) within the repo
+- Allows you to specify the version of the module to use
+
+OpenTofu supports GitHub URLs, GitLab URLs, Bitbucket URLs, and more.
+
+#### 2.9.8.2. Registry URLs
+
+One particularly convenient option: publish modules to a module registry.
+
+:::info[Module Registry Explained]
+
+**In plain English:** A module registry is a centralized website where people can publish, find, and download reusable infrastructure modules.
+
+**In technical terms:** A module registry is a versioned catalog of infrastructure modules with standardized metadata, semantic versioning, and automated documentation generation.
+
+**Why it matters:** Registries make it easy to discover and reuse modules created by others, accelerating infrastructure development.
+
+
+
+OpenTofu and Terraform each provide a public registry for open source modules. You can also run private registries within your company.
+
+All reusable modules in this book are published to the OpenTofu and Terraform public registries:
 
 **Example 2-21.** Set source to a registry URL (`ch2/tofu/live/sample-app/main.tf`)
 
@@ -1287,9 +1837,15 @@ module "sample_app_1" {
 }
 ```
 
-Registry URLs are a bit shorter, and they allow you to use the `version` parameter to specify the version, which is a bit cleaner than appending a `ref` parameter, and supports version constraints.
+**Registry URL benefits:**
 
-Run init on this code one more time:
+- Shorter than GitHub URLs
+- Use `version` parameter instead of `ref` parameter
+- Supports version constraints (e.g., `~> 1.0`)
+
+#### 2.9.8.3. Using Registry Modules
+
+Run init one more time:
 
 ```bash
 $ tofu init
@@ -1302,104 +1858,310 @@ Downloading registry.opentofu.org/brikis98/devops/book 1.0.0 for sample_app_2...
 Initializing provider plugins...
 ```
 
-The init command is responsible for downloading provider code and module code, and you can see in the preceding output that, this time, it downloaded the module code from the OpenTofu registry. If you now run apply, you should get the exact same two EC2 instances as before. When you're done experimenting, run destroy to clean up everything.
+The init command downloads provider code and module code. This time, it downloaded the module code from the OpenTofu registry.
 
-You've now seen the power of reusable modules. A common pattern at many companies is for the Ops team to define and manage a library of vetted, reusable OpenTofu modules (e.g., one module to deploy servers, another to deploy databases, and another to configure networking) and for the Dev teams to use these modules as a self-service way to deploy and manage the infrastructure they need for their apps.
+Run apply. You should get the exact same two EC2 instances as before. When you're done, run destroy to clean up.
 
-This book uses this pattern in future chapters. Instead of writing every line of code from scratch, you'll be able to use modules directly from this book's sample code repo to deploy the infrastructure you need for each chapter.
+#### 2.9.8.4. The Power of Reusable Modules
 
-> **Get Your Hands Dirty**
+A common pattern at many companies:
+
+- **Ops team**: Defines and manages a library of vetted, reusable modules
+- **Dev teams**: Use these modules as a self-service way to deploy infrastructure
+
+**Example modules:**
+
+- One module to deploy servers
+- One module to deploy databases
+- One module to configure networking
+
+This book uses this pattern in future chapters. Instead of writing every line from scratch, you'll use modules directly from this book's sample code repo.
+
+### 2.9.9. Exercises
+
+Try these exercises to go deeper:
+
+- Make your `ec2-instance` module more configurable (add input variables for instance type, AMI name, etc.)
+- Learn how to version your modules
+
+### 2.9.10. How Provisioning Tools Stack Up
+
+#### 2.9.10.1. CRUD
+
+**Provisioning tools:** Full support for all four CRUD operations.
+
+You just saw OpenTofu:
+
+- **Create** an EC2 instance
+- **Read** the EC2 instance state
+- **Update** the EC2 instance (to add a tag)
+- **Delete** the EC2 instance
+
+#### 2.9.10.2. Scale
+
+**Provisioning tools:** Highly scalable.
+
+The self-service approach (library of reusable modules managed by Ops, used by Dev) can scale to:
+
+- Thousands of developers
+- Tens of thousands of resources
+
+#### 2.9.10.3. Deployment Strategies
+
+**Provisioning tools:** Use whatever deployment strategies the underlying infrastructure supports.
+
+OpenTofu allows you to use instance refresh to do a zero-downtime, rolling deployment for groups of servers in AWS. You'll try an example in Chapter 3.
+
+#### 2.9.10.4. Idempotency
+
+**Provisioning tools:** Idempotent by design.
+
+:::info[Declarative vs Procedural]
+
+**Procedural (ad hoc scripts):** Specify step-by-step how to achieve a desired end state.
+
+**Declarative (provisioning tools):** Specify the end state you want. The tool automatically figures out how to get from current state to desired state.
+
+**Why it matters:** Declarative tools are naturally idempotent. They always converge to the same desired state regardless of how many times you run them.
+
+
+
+Most provisioning tools are declarative. As a result, they're idempotent by design.
+
+#### 2.9.10.5. Consistency
+
+**Provisioning tools:** Enforce consistent structure.
+
+Most tools provide:
+
+- Standard documentation conventions
+- Consistent file layout
+- Clearly named parameters
+
+#### 2.9.10.6. Verbosity
+
+**Provisioning tools:** Concise code.
+
+The declarative nature and custom DSLs result in concise code. The OpenTofu code is about half the length of the Bash code, even though it does considerably more:
+
+- Supports all CRUD operations
+- Includes deployment strategies
+- Scale
+- Idempotency out of the box
+
+#### 2.9.10.7. Beyond Infrastructure
+
+Provisioning tools can manage more than just traditional infrastructure:
+
+- **Version control**: Use the GitHub provider
+- **Metrics**: Use the Grafana provider
+- **On-call rotation**: Use the PagerDuty provider
+- **And more**: Tie everything together with code
+
+> **Insight: When to Use Provisioning Tools**
 >
-> Here are a few exercises you can try at home to go deeper:
+
+Provisioning tools are great for deploying and managing servers and infrastructure.
+
+Provisioning tools should be your go-to option for managing infrastructure.
+
+
+
+## 2.10. Using Multiple IaC Tools Together
+
+Each tool has strengths and weaknesses. No one tool can do it all.
+
+> **Insight: Combining IaC Tools**
 >
-> - Make your `ec2-instance` module more configurable (e.g., add input variables for the instance type, AMI name, and so on).
-> - Learn how to version your modules.
 
-### How Provisioning Tools Stack Up
+You usually need to use multiple IaC tools together to manage your infrastructure.
 
-How do provisioning tools stack up against the IaC category criteria from before? Let's take a look:
 
-**CRUD**
-Most provisioning tools have full support for all four CRUD operations. For example, you just saw OpenTofu create an EC2 instance, read the EC2 instance state, update the EC2 instance (to add a tag), and delete the EC2 instance.
 
-**Scale**
-Provisioning tools are highly scalable. For example, the self-service approach mentioned in the preceding section—where you have a library of reusable modules managed by Ops teams and used by Dev teams to deploy the infrastructure they need—can scale to thousands of developers and tens of thousands of resources.
+### 2.10.1. Provisioning Plus Configuration Management
 
-**Deployment strategies**
-Provisioning tools typically let you use whatever deployment strategies are supported by the underlying infrastructure. For example, OpenTofu allows you to use instance refresh to do a zero-downtime, rolling deployment for groups of servers in AWS; you'll try out an example of this in Chapter 3.
+**Example: OpenTofu and Ansible**
 
-**Idempotency**
-Whereas most ad hoc scripts are procedural, specifying step-by-step how to achieve a desired end state, most provisioning tools are declarative: you specify the end state you want, and the provisioning tool automatically figures out how to get you from your current state to that desired end state. As a result, most provisioning tools are idempotent by design.
+- Use OpenTofu to deploy underlying infrastructure (network topology, data stores, load balancers, servers)
+- Use Ansible to deploy apps on top of those servers
 
-**Consistency**
-Most provisioning tools enforce a consistent, predictable structure to the code, including documentation, file layout, clearly named parameters, and so on.
+**Advantages:**
 
-**Verbosity**
-The declarative nature of provisioning tools and the custom DSLs they provide typically result in concise code, especially considering that code supports all CRUD operations, deployment strategies, scale, and idempotency out of the box. The OpenTofu code for deploying an EC2 instance is about half the length of the Bash code, even though it does considerably more.
+- Easy approach to get started with
+- Many ways to integrate (OpenTofu adds tags to servers, Ansible uses inventory plugin to discover tagged servers)
 
-Provisioning tools should be your go-to option for managing infrastructure. Moreover, many provisioning tools can be used to manage not only traditional infrastructure (e.g., servers), but many other aspects of software delivery as well. For example, you can use OpenTofu to manage your version-control system (e.g., using the GitHub provider), metrics (e.g., using the Grafana provider), and your on-call rotation (e.g., using the PagerDuty provider), tying them all together with code.
+**Disadvantages:**
 
-> **Insight**
+- Using Ansible typically means mutable infrastructure
+- As codebase, infrastructure, and team grow, maintenance and debugging become more difficult
+
+### 2.10.2. Provisioning Plus Server Templating
+
+**Example: OpenTofu and Packer**
+
+- Use Packer to package your apps as VM images
+- Use OpenTofu to deploy infrastructure, including servers that run these VM images
+
+**Advantages:**
+
+- Easy approach to get started with
+- You already tried this combination earlier in this chapter
+- Immutable infrastructure approach makes maintenance easier
+
+**Disadvantages:**
+
+- VMs can take a long time to build and deploy
+- Slows iteration speed
+
+### 2.10.3. Provisioning Plus Server Templating Plus Orchestration
+
+**Example: OpenTofu, Packer, Docker, and Kubernetes**
+
+- Use Packer to create a VM image with Docker and Kubernetes installed
+- Use OpenTofu to deploy infrastructure, including servers running this VM image
+- When servers boot up, they form a Kubernetes cluster
+- Use Kubernetes to run your Dockerized applications
+
+**Advantages:**
+
+- Power of an IaC tool (OpenTofu) for managing infrastructure
+- Power of server templating (Docker) for configuring servers with fast builds
+- Ability to run images on your local computer
+- Power of orchestration tool (Kubernetes) for managing apps (scheduling, auto healing, auto scaling, service communication)
+
+**Disadvantages:**
+
+- Added complexity
+- Extra infrastructure to run (the Kubernetes cluster)
+- Several extra layers of abstraction to learn, manage, and debug (Kubernetes, Docker, Packer)
+
+You'll get to try this approach in Chapter 3.
+
+## 2.11. Adopting IaC
+
+### 2.11.1. Understanding the Costs
+
+Adopting IaC has significant costs:
+
+- Team members must learn new tools and techniques
+- Team must get used to a totally new way of working
+- Big shift from old-school sysadmin to new DevOps approach
+
+**Old-school sysadmin approach:**
+
+- Spend all day managing infrastructure manually and directly
+- Connect to a server and update its configuration
+
+**New DevOps approach:**
+
+- Spend all day coding and making changes indirectly
+- Write some code and let an automated process apply the changes
+
+> **Insight: Culture and Process Change**
 >
-> Provisioning tools are great for deploying and managing servers and infrastructure.
 
-Although I've been comparing IaC tools this entire chapter, the reality is that you'll probably need to use multiple IaC tools together, as discussed in the next section.
+Adopting IaC requires more than just introducing a new tool or technology; it also requires changing the culture and processes of the team.
 
-## Using Multiple IaC Tools Together
 
-Each of the tools you've seen in this chapter has strengths and weaknesses. No one of them can do it all, so for most real-world scenarios, you'll need multiple tools.
 
-> **Insight**
->
-> You usually need to use multiple IaC tools together to manage your infrastructure.
+Changing culture and processes is a significant undertaking, especially at larger companies. Every team's culture and processes are different. There's no one-size-fits-all way to do it.
 
-This section shows several common ways to combine tools.
+### 2.11.2. Tips for Successful IaC Adoption
 
-### Provisioning Plus Configuration Management
+#### 2.11.2.1. Adapt Your Architecture and Processes to Your Needs
 
-**Example: OpenTofu and Ansible.** You use OpenTofu to deploy the underlying infrastructure, including the network topology, data stores, load balancers, and servers, and you use Ansible to deploy apps on top of those servers, as depicted in Figure 2-2.
+Not every team needs IaC.
 
-This is an easy approach to get started with, and there are many ways to get Ansible and OpenTofu to work together (e.g., OpenTofu adds tags to your servers, and Ansible uses an inventory plugin to automatically discover servers with those tags). The main downside is that using Ansible typically means mutable infrastructure, rather than immutable, so as your codebase, infrastructure, and team grow, maintenance and debugging can become more difficult.
+Adopting IaC has a relatively high cost. It will pay off for some scenarios but not others.
 
-### Provisioning Plus Server Templating
+**When IaC makes sense:**
 
-**Example: OpenTofu and Packer.** You use Packer to package your apps as VM images, and you use OpenTofu to deploy your infrastructure, including servers that run these VM images, as illustrated in Figure 2-3.
+- Your team spends all its time dealing with bugs and outages from manual deployment
+- Prioritizing IaC might make sense
 
-This is also an easy approach to get started with. In fact, you already had a chance to try this combination earlier in this chapter. Moreover, this is an immutable infrastructure approach, which will make maintenance easier. The main drawback is that VMs can take a long time to build and deploy, which slows iteration speed.
+**When IaC doesn't make sense:**
 
-### Provisioning Plus Server Templating Plus Orchestration
+- You're at a tiny startup where one person can manage all infrastructure
+- You're working on a prototype that might be thrown away in a few months
+- Managing infrastructure by hand may be the right choice
 
-**Example: OpenTofu, Packer, Docker, and Kubernetes.** You use Packer to create a VM image that has Docker and Kubernetes installed. You use OpenTofu to deploy your infrastructure, including servers that run this VM image. When the servers boot up, they form a Kubernetes cluster that you use to run your Dockerized applications. All this is shown in Figure 2-4.
+Don't adopt IaC (or any other practice) just because you read it's a "best practice." There's no one best practice. Adapt your architecture and processes to your company's needs.
 
-You'll get to try this in Chapter 3. The advantage of this approach is that you get the power of an IaC tool (OpenTofu) for managing your infrastructure, the power of server templating (Docker) for configuring your servers (with fast builds and the ability to run images on your local computer), and the power of an orchestration tool (Kubernetes) for managing your apps (including scheduling, auto healing, auto scaling, and service communication). The drawback is the added complexity, both in terms of extra infrastructure to run (the Kubernetes cluster) and in terms of several extra layers of abstraction (Kubernetes, Docker, Packer) to learn, manage, and debug.
+#### 2.11.2.2. Work Incrementally
 
-## Adopting IaC
+Even if you prioritize adopting IaC, don't try to do it all in one massive step.
 
-At the beginning of this chapter, you heard about all the benefits of IaC (including self-service, speed and safety, and code reuse), but it's important to understand that adopting IaC has significant costs too. Your team members not only have to learn new tools and techniques but also have to get used to a totally new way of working. It's a big shift to go from the old-school sysadmin approach of spending all day managing infrastructure manually and directly (e.g., connect to a server and update its configuration) to the new DevOps approach of spending all day coding and making changes indirectly (e.g., write some code and let an automated process apply the changes).
+Adopt any new practice incrementally:
 
-> **Insight**
->
-> Adopting IaC requires more than just introducing a new tool or technology; it also requires changing the culture and processes of the team.
+- Break the work into small steps
+- Each step brings value by itself
 
-Changing culture and processes is a significant undertaking, especially at larger companies. Because every team's culture and processes are different, there's no one-size-fits-all way to do it. Here are a few tips that will be useful in most situations:
+**Bad approach:**
 
-**Adapt your architecture and processes to your needs**
-It might be slightly heretical for the author of a book on DevOps to say this, but not every team needs IaC. Adopting IaC has a relatively high cost, and while it will pay off for some scenarios, it won't for others. For example, if your team is spending all its time dealing with bugs and outages that result from a manual deployment process, prioritizing IaC might make sense. But if you're at a tiny startup where one person can manage all your infrastructure, or you're working on a prototype that might be thrown away in a few months, managing infrastructure by hand may be the right choice. Don't adopt IaC (or any other practice) just because you read somewhere that it's a "best practice." As you learned in Chapter 1, there's no one best practice; you need to adapt your architecture and processes to your company's needs.
+- Do one giant project migrating all infrastructure to IaC
+- Write tens of thousands of lines of code in one go
 
-**Work incrementally**
-Even if you do prioritize adopting IaC (or any other practice), don't try to do it all in one massive step. Instead, adopt any new practice incrementally, as you learned in Chapter 1: break the work into small steps, each of which brings value by itself. For example, don't try to do one giant project aiming to migrate all your infrastructure to IaC by writing tens of thousands of lines of code. Instead, use an iterative process: identify the most problematic part of your infrastructure (e.g., the part causing the most bugs and outages), fix the problems in that part (perhaps by migrating that part to IaC), and repeat.
+**Good approach:**
 
-**Give your team the time to learn**
-If you want your team to adopt IaC, you need to be willing to dedicate sufficient time and resources to it. If your team doesn't get the time and resources that it needs, your IaC migration is likely to fail. One scenario I've seen many times is that no one on the team has any clue how to use IaC properly, so you end up with a jumble of messy, buggy, unmaintainable code that causes more problems than it solves. Another common scenario is that part of the team knows how to do IaC properly, and they write thousands of lines of beautiful code, but the rest of the team has no idea how to use it, so they continue making changes manually, which invalidates most of the benefits of IaC. If you decide to prioritize IaC, I recommend that (a) you get everyone bought in, (b) you make learning resources available such as classes, documentation, video tutorials, and, of course, this book, and (c) you provide sufficient dedicated time for team members to ramp up before you start using IaC everywhere.
+- Use an iterative process
+- Identify the most problematic part of your infrastructure (causing the most bugs and outages)
+- Fix the problems in that part (perhaps by migrating that part to IaC)
+- Repeat
 
-**Get the right people on the team**
-If you want to be able to use IaC, you have to learn how to write code. In fact, as you saw at the beginning of the chapter, a key shift with modern DevOps is managing more and more as code, so as a company adopts more DevOps practices, strong coding skills become more and more important. If you have team members who are not strong coders, be aware that some will be able to level up (given sufficient time and resources, as per the previous point), but some will not, which means you may have to hire new developers with coding skills for your team.
+#### 2.11.2.3. Give Your Team the Time to Learn
 
-## Conclusion
+If you want your team to adopt IaC, dedicate sufficient time and resources to it.
 
-You now understand how to manage your infrastructure as code. Instead of clicking around a web UI, which is tedious and error prone, you can automate the process, making if faster and more reliable. Moreover, whereas manual deployments always require someone at your company to do the busywork, with IaC, you can reuse code written by others. While learning, for example, you can reuse code from this book's sample code repo in GitHub, and in production, you can reuse code from collections such as Ansible Galaxy, Docker Hub, OpenTofu Registry, and the Gruntwork Infrastructure as Code Library (full list).
+**Common failure scenario 1:**
 
-To help you pick an IaC tool, here are the six key takeaways from this chapter:
+- No one on the team knows how to use IaC properly
+- You end up with messy, buggy, unmaintainable code
+- This causes more problems than it solves
+
+**Common failure scenario 2:**
+
+- Part of the team knows how to do IaC properly
+- They write thousands of lines of beautiful code
+- The rest of the team has no idea how to use it
+- They continue making changes manually
+- This invalidates most of the benefits of IaC
+
+**Recommendations:**
+
+1. Get everyone bought in
+2. Make learning resources available (classes, documentation, video tutorials, books)
+3. Provide sufficient dedicated time for team members to ramp up before using IaC everywhere
+
+#### 2.11.2.4. Get the Right People on the Team
+
+To use IaC, you must learn how to write code.
+
+As you saw at the beginning of this chapter, a key shift with modern DevOps is managing more and more as code. As a company adopts more DevOps practices, strong coding skills become more and more important.
+
+**Reality check:**
+
+- If you have team members who are not strong coders, some will be able to level up (given sufficient time and resources)
+- Some will not
+- You may have to hire new developers with coding skills for your team
+
+## 2.12. Conclusion
+
+You now understand how to manage your infrastructure as code.
+
+### 2.12.1. The Transformation from ClickOps to IaC
+
+Instead of clicking around a web UI (tedious and error prone), you can automate the process (faster and more reliable).
+
+Whereas manual deployments always require someone at your company to do the busywork, with IaC, you can reuse code written by others:
+
+- **While learning**: Reuse code from this book's sample code repo
+- **In production**: Reuse code from collections:
+  - Ansible Galaxy
+  - Docker Hub
+  - OpenTofu Registry
+  - Gruntwork Infrastructure as Code Library
+
+### 2.12.2. Six Key Takeaways
 
 1. **Ad hoc scripts are great for small, one-off tasks, but not for managing all your infrastructure as code.**
 
@@ -1413,15 +2175,49 @@ To help you pick an IaC tool, here are the six key takeaways from this chapter:
 
 6. **Adopting IaC requires more than just introducing a new tool or technology; it also requires changing the culture and processes of the team.**
 
-If the job you're doing is provisioning infrastructure, you'll probably want to use a provisioning tool. If the job you're doing is configuring servers, you'll probably want to use a server templating or configuration management tool. And as most real-world software delivery setups require you to do multiple jobs, you'll most likely have to combine several tools together (e.g., provisioning plus server templating).
+### 2.12.3. Choosing the Right Tool
 
-It's worth remembering that there is also a lot of variety within an IaC category; for example, there are big differences between Ansible and Chef within the configuration management category, and between OpenTofu and CloudFormation within the provisioning tool category. For a more detailed analysis, have a look at this comparison of Chef, Puppet, Ansible, Pulumi, CloudFormation, and Terraform/OpenTofu.
+**If the job is provisioning infrastructure:**
 
-> **Going Deeper on OpenTofu/Terraform**
->
-> Many of the examples in the rest of this book involve provisioning infrastructure using OpenTofu, so you may want to become more familiar with this toolset. The best way to do that, with apologies for a bit of self-promotion, is to grab a copy of my other book, *Terraform: Up & Running* (O'Reilly).
+- You'll probably want to use a provisioning tool
 
-Being able to use code to run a server is a huge advantage over managing it manually, but a single server is also a single point of failure. What if it crashes? What if the load exceeds the capacity of a single server? How do you roll out changes without downtime? These topics move us into the domain of orchestration tools and managing apps, which is the focus of Chapter 3.
+**If the job is configuring servers:**
+
+- You'll probably want to use a server templating or configuration management tool
+
+**Most real-world setups:**
+
+- Require you to do multiple jobs
+- You'll most likely combine several tools together (e.g., provisioning plus server templating)
+
+### 2.12.4. Variety Within Categories
+
+There's also a lot of variety within an IaC category:
+
+- Big differences between Ansible and Chef (both configuration management)
+- Big differences between OpenTofu and CloudFormation (both provisioning tools)
+
+For a more detailed analysis, see the comparison of Chef, Puppet, Ansible, Pulumi, CloudFormation, and Terraform/OpenTofu.
+
+:::info[Going Deeper on OpenTofu/Terraform]
+
+Many examples in the rest of this book involve provisioning infrastructure using OpenTofu.
+
+To become more familiar with this toolset, grab a copy of *Terraform: Up & Running* by Yevgeniy Brikman (O'Reilly).
+
+
+
+### 2.12.5. What's Next
+
+Being able to use code to run a server is a huge advantage over managing it manually. But a single server is also a single point of failure.
+
+**Questions for Chapter 3:**
+
+- What if the server crashes?
+- What if the load exceeds the capacity of a single server?
+- How do you roll out changes without downtime?
+
+These topics move into the domain of orchestration tools and managing apps—the focus of Chapter 3.
 
 ---
 
